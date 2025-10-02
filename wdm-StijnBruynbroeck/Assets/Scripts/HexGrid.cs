@@ -11,7 +11,7 @@ public class HexGrid : MonoBehaviour
     [HideInInspector] 
     public GameObject[,] grid; 
 
-    void Start()
+    void Awake()
     {
         GenerateGrid();
     }
@@ -20,8 +20,8 @@ public class HexGrid : MonoBehaviour
     {
         grid = new GameObject[width, height];
 
-        float xOffset = hexSize * Mathf.Sqrt(3);
-        float yOffset = hexSize * 1.5f;
+        float xOffset = hexSize * 1.1f;
+        float yOffset = hexSize * 0.78f;
 
         for (int x = 0; x < width; x++)
         {

@@ -57,7 +57,26 @@ public class HexGrid : MonoBehaviour
         {
             SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
             if (sr != null)
-                sr.color = Color.white; 
+                sr.color = Color.white;
+
+        }
+
+    }
+     public void HighlightReachable(int centerX, int centerY)
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+                GameObject tile = GetTile(centerX + dx, centerY + dy);
+                if (tile != null)
+                {
+                    SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
+                    if (sr != null && sr.color != Color.white)
+                        sr.color = Color.gray;
+                }
+            }
         }
     }
 }

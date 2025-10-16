@@ -43,6 +43,11 @@ public class PlayerController : MonoBehaviour
         {
             HandleClick();
         }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            GameLogger.Instance.PrintSummary();
+        }
         
     }
 
@@ -99,33 +104,26 @@ public class PlayerController : MonoBehaviour
         gridX = x;
         gridY = y;
         targetPos = grid.GetTile(gridX, gridY).transform.position + Vector3.up * 0.5f;
+        isMoving = true;    
+        
         Debug.Log($"Player moved to tile: ({gridX},{gridY})");
+
+        GameLogger.Instance.RecordMove(gridX, gridY);
 
         if (Random.value < 0.3f)
         {
             string eventType = Random.value < 0.5f ? "Friendly Tribe" : "Hostile Tribe";
             Debug.Log($"Encounter: {eventType}");
+            GameLogger.Instance.RecordEvent(eventType);
             
         }
     }
 
     void RevealTiles()
     {
-        //reveal tiles
-        for (int dx = -1; dx <= 1; dx++)
-        {
-            for (int dy = -1; dy <= 1; dy++)
-            {
-                GameObject tile = grid.GetTile(gridX + dx, gridY + dy);
-                if (tile != null)
-                {
-                    SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
-                    if (sr != null)
-                        sr.color = Color.white;
-                }
-            }
-        }
-        for (int dx = -1; dx <= 1; dx++)
+        grid.ClearHighlights();
+        
+                for (int dx = -1; dx <= 1; dx++)
         {
             for (int dy = -1; dy <= 1; dy++)
             {

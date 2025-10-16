@@ -58,11 +58,12 @@ public class HexGrid : MonoBehaviour
             SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
             if (sr != null)
                 sr.color = Color.white;
+                
 
         }
 
     }
-     public void HighlightReachable(int centerX, int centerY)
+    public void HighlightReachable(int centerX, int centerY)
     {
         for (int dx = -1; dx <= 1; dx++)
         {
@@ -77,6 +78,17 @@ public class HexGrid : MonoBehaviour
                         sr.color = Color.gray;
                 }
             }
+
+        }
+    }
+    public void ClearHighlights()
+    {
+        foreach (var tile in grid)
+        {
+            if (tile == null) continue;
+            SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
+            if (sr != null && sr.color == Color.gray)
+                sr.color = Color.black;
         }
     }
 }

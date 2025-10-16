@@ -40,7 +40,7 @@ public class PlayerController : MonoBehaviour
 
     void HandleClick()
     {
-        // ray vanuit muispositie naar wereld
+        
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0f; // 2D wereld
 
@@ -69,6 +69,8 @@ public class PlayerController : MonoBehaviour
         {
             MoveTo(bestX, bestY);
         }
+
+        
     }
 
     void MoveTo(int x, int y)

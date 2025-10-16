@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public int gridY = 0;
 
     private Vector3 targetPos;
+    private bool isMoving = false;
 
     void Start()
     {
@@ -24,11 +25,17 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        
+
         if (Vector3.Distance(transform.position, targetPos) > 0.01f)
         {
             transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
             return;
+        }
+        
+        if (isMoving)
+        {
+            isMoving = false;
+            RevealTiles();
         }
 
         // klikken om te bewegen
@@ -36,15 +43,16 @@ public class PlayerController : MonoBehaviour
         {
             HandleClick();
         }
+        
     }
 
     void HandleClick()
     {
-        
+
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0f; // 2D wereld
 
-        
+
         float bestDist = Mathf.Infinity;
         int bestX = -1, bestY = -1;
 
@@ -56,7 +64,7 @@ public class PlayerController : MonoBehaviour
                 if (tile == null) continue;
 
                 float dist = Vector2.Distance(mouseWorldPos, tile.transform.position);
-                if (dist < bestDist && dist < 0.5f) 
+                if (dist < bestDist && dist < 0.5f)
                 {
                     bestDist = dist;
                     bestX = x;
@@ -67,11 +75,24 @@ public class PlayerController : MonoBehaviour
 
         if (bestX != -1 && bestY != -1)
         {
-            MoveTo(bestX, bestY);
+            TryMoveTo(bestX, bestY);
         }
 
-        
+
     }
+    
+     void TryMoveTo(int x, int y)
+    {
+        
+        if (Mathf.Abs(x - gridX) > 1 || Mathf.Abs(y - gridY) > 1)
+        {
+            Debug.Log("Te ver om in één beurt te bewegen!");
+            return;
+        }
+
+        MoveTo(x, y);
+    }
+
 
     void MoveTo(int x, int y)
     {
@@ -80,7 +101,12 @@ public class PlayerController : MonoBehaviour
         targetPos = grid.GetTile(gridX, gridY).transform.position + Vector3.up * 0.5f;
         Debug.Log($"Player moved to tile: ({gridX},{gridY})");
 
-        RevealTiles();
+        if (Random.value < 0.3f)
+        {
+            string eventType = Random.value < 0.5f ? "Friendly Tribe" : "Hostile Tribe";
+            Debug.Log($"Encounter: {eventType}");
+            
+        }
     }
 
     void RevealTiles()
@@ -95,9 +121,17 @@ public class PlayerController : MonoBehaviour
                 {
                     SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
                     if (sr != null)
-                        sr.color = Color.white; 
+                        sr.color = Color.white;
                 }
             }
         }
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                grid.RevealTile(gridX + dx, gridY + dy);
+            }
+        }
+        grid.HighlightReachable(gridX, gridY);
     }
 }

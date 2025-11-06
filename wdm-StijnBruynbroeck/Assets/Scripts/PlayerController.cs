@@ -114,7 +114,7 @@ public class PlayerController : MonoBehaviour
         {
             string eventType = Random.value < 0.5f ? "Friendly Tribe" : "Hostile Tribe";
             Debug.Log($"Encounter: {eventType}");
-            GameLogger.Instance.RecordEvent(eventType);
+            GameLogger.Instance.RecordEvent(eventType, gridX,gridY);
             
         }
     }

@@ -21,7 +21,7 @@ public class HexGrid : MonoBehaviour
         grid = new GameObject[width, height];
 
         float xOffset = hexSize * 1.1f;
-        float yOffset = hexSize * 0.78f;
+        float yOffset = hexSize * 1f;
 
         for (int x = 0; x < width; x++)
         {

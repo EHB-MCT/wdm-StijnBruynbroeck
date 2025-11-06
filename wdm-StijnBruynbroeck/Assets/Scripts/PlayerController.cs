@@ -44,10 +44,7 @@ public class PlayerController : MonoBehaviour
             HandleClick();
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            GameLogger.Instance.PrintSummary();
-        }
+    
         
     }
 

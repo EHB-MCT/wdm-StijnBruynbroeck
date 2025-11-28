@@ -48,3 +48,19 @@
 - Added CheckTileResources() function - 30% chance to find resources (Forest: 2-6 Wood, Mountain: 1-4 Gold)
 - Used RuntimeInitializeOnLoadMethod to auto-create ResourceManager GameObject
 - Created new branch feat/client-resource-system and committed changes with conventional commit format
+
+## 2025-11-28 (Fourth conversation)
+**User Request**: User reported API Error: HTTP/1.1 404 Not Found from GameLogger, then 500 Internal Server Error after initial fixes.
+
+**Context**: API communication between Unity client and restructured backend was failing due to endpoint mismatch and JSON parsing issues.
+
+**Git Analysis**: User was on feat/client-resource-system branch with many changes including node_modules modifications.
+
+**Action Taken**:
+- Fixed GameLogger endpoint from /api/actions to /api/log to match restructured backend
+- Downgraded Express from 5.x to 4.x to resolve JSON body parsing compatibility issues
+- Implemented manual JSON parsing in LogController to bypass Express body parser issues
+- Added comprehensive debugging to GameLogger for better error tracking and troubleshooting
+- Updated package.json to reflect Express version downgrade
+- Cleanly committed only source code changes, excluding node_modules (201 changes reduced to 5 files)
+- Used conventional commit format with proper fix scope and detailed message

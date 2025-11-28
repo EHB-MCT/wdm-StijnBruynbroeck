@@ -38,8 +38,8 @@ public class PlayerController : MonoBehaviour
             RevealTiles();
         }
 
-        // klikken om te bewegen
-        if (Input.GetMouseButtonDown(0)) // linkermuisknop
+      
+        if (Input.GetMouseButtonDown(0))
         {
             HandleClick();
         }
@@ -52,7 +52,7 @@ public class PlayerController : MonoBehaviour
     {
 
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorldPos.z = 0f; // 2D wereld
+        mouseWorldPos.z = 0f; 
 
 
         float bestDist = Mathf.Infinity;
@@ -92,6 +92,12 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (!ResourceManager.Instance.CanAffordMove())
+        {
+            Debug.Log("Not enough resources to move!");
+            return;
+        }
+
         MoveTo(x, y);
     }
 
@@ -103,9 +109,13 @@ public class PlayerController : MonoBehaviour
         targetPos = grid.GetTile(gridX, gridY).transform.position + Vector3.up * 0.5f;
         isMoving = true;    
         
+        ResourceManager.Instance.SpendMovementCost();
+        
         Debug.Log($"Player moved to tile: ({gridX},{gridY})");
 
         GameLogger.Instance.RecordMove(gridX, gridY);
+
+        CheckTileResources();
 
         if (Random.value < 0.3f)
         {
@@ -113,6 +123,23 @@ public class PlayerController : MonoBehaviour
             Debug.Log($"Encounter: {eventType}");
             GameLogger.Instance.RecordEvent(eventType, gridX,gridY);
             
+        }
+    }
+
+    void CheckTileResources()
+    {
+        if (Random.value < 0.3f)
+        {
+            if (Random.value < 0.5f)
+            {
+                ResourceManager.Instance.AddResource("wood", Random.Range(2, 6));
+                Debug.Log("Found a forest! Gained wood.");
+            }
+            else
+            {
+                ResourceManager.Instance.AddResource("gold", Random.Range(1, 4));
+                Debug.Log("Found a mountain! Gained gold.");
+            }
         }
     }
 

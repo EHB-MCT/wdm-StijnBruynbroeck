@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { Pool } = require("pg");
+const LogService = require("./services/LogService");
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -9,8 +9,10 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
-const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
+app.use("/api", require("./routes/logRoutes"));
+
+app.get("/", (req, res) => {
+	res.send("Backend is Online.");
 });
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -24,23 +26,7 @@ const startServer = async () => {
 				` Trying to connect with database... (Tries over: ${retries})`
 			);
 
-			await pool.query(`
-                CREATE TABLE IF NOT EXISTS users (
-                    uid VARCHAR(255) PRIMARY KEY,
-                    platform VARCHAR(50),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-            `);
-
-			await pool.query(`
-                CREATE TABLE IF NOT EXISTS game_actions (
-                    id SERIAL PRIMARY KEY,
-                    user_uid VARCHAR(255),
-                    action_type VARCHAR(50),
-                    action_data JSONB,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-            `);
+			await LogService.initializeTables();
 
 			console.log(" Database tables initialized! Starting Web Server...");
 
@@ -64,26 +50,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-app.post("/api/log", async (req, res) => {
-	const { uid, type, data } = req.body;
-	try {
-		await pool.query(
-			`INSERT INTO users (uid, platform) VALUES ($1, 'Unity') ON CONFLICT (uid) DO NOTHING`,
-			[uid]
-		);
-		await pool.query(
-			`INSERT INTO game_actions (user_uid, action_type, action_data) VALUES ($1, $2, $3)`,
-			[uid, type, data]
-		);
-		console.log(` Data opgeslagen voor user: ${uid}`);
-		res.json({ status: "success" });
-	} catch (err) {
-		console.error(err);
-		res.status(500).json({ error: "Save failed" });
-	}
-});
-
-app.get("/", (req, res) => {
-	res.send("Backend is Online.");
-});

@@ -32,3 +32,19 @@
 - Refactored index.js to only handle server startup and route mounting
 - Maintained existing /api/log endpoint functionality
 - Created new branch feat/backend-architecture and committed changes with conventional commit format
+
+## 2025-11-28 (Third conversation)
+**User Request**: "I need 'Civilization'-style features in my Unity client. Create a ResourceManager script (Singleton). This must track Gold and Wood. Create functions AddResource(type, amount) and SpendResource(type, amount). Update my PlayerController.cs: If I move to a Forest tile, I gain Wood. If I move to a Mountain, I gain Gold. Ensure every move costs resources (Movement Cost). If I am at 0, I cannot move."
+
+**Context**: User wanted to add a resource management system similar to Civilization games to their Unity project.
+
+**Git Analysis**: User was on feat/backend-architecture branch, following conventional commit pattern.
+
+**Action Taken**:
+- Created ResourceManager singleton script with Gold and Wood tracking (starting with 10 each)
+- Implemented AddResource and SpendResource functions with proper validation
+- Added movement cost system (1 resource per move) with CanAffordMove() and SpendMovementCost() functions
+- Updated PlayerController to check resources before movement and prevent moves at 0 resources
+- Added CheckTileResources() function - 30% chance to find resources (Forest: 2-6 Wood, Mountain: 1-4 Gold)
+- Used RuntimeInitializeOnLoadMethod to auto-create ResourceManager GameObject
+- Created new branch feat/client-resource-system and committed changes with conventional commit format

@@ -41,11 +41,11 @@ public class GameLogger : MonoBehaviour
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError($"API Error: {webRequest.error}. Controleer of Docker draait op poort 8080.");
+                Debug.LogError($"API Error: {webRequest.error}. Control if docker is running on port 8080.");
             }
             else
             {
-                Debug.Log("Actie succesvol gelogd op de backend!");
+                Debug.Log("Action succesful ");
             }
         }
     }
@@ -59,7 +59,7 @@ public class GameLogger : MonoBehaviour
             TimeInGame = Time.time,
             HexX = x,
             HexY = y,
-            Details = $"Bewogen naar ({x},{y})"
+            Details = $"Moved to ({x},{y})"
         };
         logs.Add(data);
         SendDataToAPI(data);

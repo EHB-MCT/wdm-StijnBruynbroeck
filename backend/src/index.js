@@ -21,7 +21,7 @@ const startServer = async () => {
 	while (retries > 0) {
 		try {
 			console.log(
-				` Poging tot verbinden met database... (pogingen over: ${retries})`
+				` Trying to connect with database... (Tries over: ${retries})`
 			);
 
 			await pool.query(`
@@ -42,23 +42,23 @@ const startServer = async () => {
                 );
             `);
 
-			console.log("✅ Database tables initialized! Starting Web Server...");
+			console.log(" Database tables initialized! Starting Web Server...");
 
 			app.listen(port, () => {
-				console.log(`🚀 Backend is live en luistert op poort ${port}`);
+				console.log(` Backend is live and is listening on port ${port}`);
 			});
 
 			return;
 		} catch (err) {
-			console.error("❌ Database connectie mislukt:", err.message);
+			console.error(" Database connection failed:", err.message);
 			retries -= 1;
-			console.log("⏳ Wachten voor volgende poging...");
+			console.log(" Waiting for the next try...");
 			await sleep(5000);
 		}
 	}
 
 	console.error(
-		" Kon geen verbinding maken met database na 5 pogingen. Server stopt."
+		" Couldn't make a connection with the server after 5 tries. Server stops."
 	);
 	process.exit(1);
 };

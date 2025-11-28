@@ -7,7 +7,7 @@ public class GameLogger : MonoBehaviour
 {
     public static GameLogger Instance;
 
-    private const string API_URL = "http://localhost:8080/api/actions";
+    private const string API_URL = "http://localhost:8080/api/log";
 
 
     private List<GameActionData> logs = new List<GameActionData>();
@@ -24,7 +24,27 @@ public class GameLogger : MonoBehaviour
 
     private void SendDataToAPI(GameActionData data)
     {
-        string json = JsonUtility.ToJson(data);
+        var requestData = new {
+            uid = PlayerIdentifier,
+            type = data.ActionType,
+            data = new {
+                timeInGame = data.TimeInGame,
+                hexX = data.HexX,
+                hexY = data.HexY,
+                details = data.Details
+            }
+        };
+        
+        string json = JsonUtility.ToJson(requestData);
+        Debug.Log("Sending JSON: " + json);
+        Debug.Log("JSON Length: " + json.Length);
+        
+        // Fallback to manual JSON if JsonUtility fails
+        if (json.Contains("{}") || json.Length < 20) {
+            json = $"{{\"uid\":\"{PlayerIdentifier}\",\"type\":\"{data.ActionType}\",\"data\":{{\"timeInGame\":{data.TimeInGame},\"hexX\":{data.HexX},\"hexY\":{data.HexY},\"details\":\"{data.Details}\"}}}}";
+            Debug.Log("Using manual JSON: " + json);
+        }
+        
         StartCoroutine(PostRequest(API_URL, json));
     }
 
@@ -37,15 +57,23 @@ public class GameLogger : MonoBehaviour
             webRequest.downloadHandler = new DownloadHandlerBuffer();
             webRequest.SetRequestHeader("Content-Type", "application/json");
 
+            Debug.Log("Request URL: " + url);
+            Debug.Log("Request Body: " + json);
+            Debug.Log("Request Body Length: " + bodyRaw.Length);
+
             yield return webRequest.SendWebRequest();
+
+            Debug.Log("Response Code: " + webRequest.responseCode);
+            Debug.Log("Response Error: " + webRequest.error);
+            Debug.Log("Response Text: " + webRequest.downloadHandler.text);
 
             if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError($"API Error: {webRequest.error}. Control if docker is running on port 8080.");
+                Debug.LogError($"API Error: {webRequest.error}. Response: {webRequest.downloadHandler.text}");
             }
             else
             {
-                Debug.Log("Action succesful ");
+                Debug.Log("Action successful");
             }
         }
     }

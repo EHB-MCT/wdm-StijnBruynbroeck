@@ -50,8 +50,8 @@ public class BuildingSystem : MonoBehaviour
         buildingTypes.Add(new BuildingType
         {
             name = "Village",
-            goldCost = 5,
-            woodCost = 8,
+            goldCost = 8,
+            woodCost = 12,
             prefab = null
         });
     }

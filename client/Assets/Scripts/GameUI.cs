@@ -48,11 +48,22 @@ public class GameUI : MonoBehaviour
 
         UpdateInstructions();
     }
-
     void Update()
     {
         UpdateResourceDisplay();
         UpdateBuildButton();
+
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            ToggleBuildMode();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape) && buildMode)
+        {
+            buildMode = false;
+            UpdateInstructions();
+            Debug.Log("Build mode cancelled");
+        }
     }
 
     void UpdateResourceDisplay()
@@ -104,24 +115,6 @@ public class GameUI : MonoBehaviour
         else
         {
             Debug.Log("Build mode deactivated");
-        }
-    }
-
-    void Update()
-    {
-        UpdateResourceDisplay();
-        UpdateBuildButton();
-
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            ToggleBuildMode();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape) && buildMode)
-        {
-            buildMode = false;
-            UpdateInstructions();
-            Debug.Log("Build mode cancelled");
         }
     }
 

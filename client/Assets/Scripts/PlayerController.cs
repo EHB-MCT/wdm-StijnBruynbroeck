@@ -50,10 +50,14 @@ public class PlayerController : MonoBehaviour
 
     void HandleClick()
     {
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            HandleBuildAction();
+            return;
+        }
 
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mouseWorldPos.z = 0f; 
-
 
         float bestDist = Mathf.Infinity;
         int bestX = -1, bestY = -1;
@@ -79,8 +83,51 @@ public class PlayerController : MonoBehaviour
         {
             TryMoveTo(bestX, bestY);
         }
+    }
 
+    void HandleBuildAction()
+    {
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mouseWorldPos.z = 0f;
 
+        float bestDist = Mathf.Infinity;
+        int bestX = -1, bestY = -1;
+
+        for (int x = 0; x < grid.width; x++)
+        {
+            for (int y = 0; y < grid.height; y++)
+            {
+                GameObject tile = grid.GetTile(x, y);
+                if (tile == null) continue;
+
+                float dist = Vector2.Distance(mouseWorldPos, tile.transform.position);
+                if (dist < bestDist && dist < 0.5f)
+                {
+                    bestDist = dist;
+                    bestX = x;
+                    bestY = y;
+                }
+            }
+        }
+
+        if (bestX != -1 && bestY != -1)
+        {
+            if (Mathf.Abs(bestX - gridX) <= 1 && Mathf.Abs(bestY - gridY) <= 1)
+            {
+                if (BuildingSystem.Instance.TryBuildVillage(bestX, bestY))
+                {
+                    Debug.Log("Village construction successful!");
+                }
+                else
+                {
+                    Debug.Log("Cannot build village here! Check resources or existing buildings.");
+                }
+            }
+            else
+            {
+                Debug.Log("Too far away to build!");
+            }
+        }
     }
     
      void TryMoveTo(int x, int y)

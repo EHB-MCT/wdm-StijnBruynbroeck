@@ -6,6 +6,9 @@ public class ResourceManager : MonoBehaviour
 
     public int gold = 10;
     public int wood = 10;
+    public int food = 15;
+    public int stone = 5;
+    public int population = 1;
     public int movementCost = 1;
 
     private void Awake()
@@ -43,10 +46,42 @@ public class ResourceManager : MonoBehaviour
             case "gold":
                 gold += amount;
                 Debug.Log($"Gained {amount} Gold! Total: {gold}");
+                if (VisualEffects.Instance != null && PlayerController.Instance != null)
+                {
+                    Color goldColor = new Color(1f, 0.84f, 0f); // Gold color
+                    VisualEffects.Instance.ShowResourcePopup(PlayerController.Instance.transform.position, "Gold", amount, goldColor);
+                }
                 break;
             case "wood":
                 wood += amount;
                 Debug.Log($"Gained {amount} Wood! Total: {wood}");
+                if (VisualEffects.Instance != null && PlayerController.Instance != null)
+                {
+                    Color woodColor = new Color(0.55f, 0.27f, 0.07f); // Brown color
+                    VisualEffects.Instance.ShowResourcePopup(PlayerController.Instance.transform.position, "Wood", amount, woodColor);
+                }
+                break;
+            case "food":
+                food += amount;
+                Debug.Log($"Gained {amount} Food! Total: {food}");
+                if (VisualEffects.Instance != null && PlayerController.Instance != null)
+                {
+                    Color foodColor = Color.green;
+                    VisualEffects.Instance.ShowResourcePopup(PlayerController.Instance.transform.position, "Food", amount, foodColor);
+                }
+                break;
+            case "stone":
+                stone += amount;
+                Debug.Log($"Gained {amount} Stone! Total: {stone}");
+                if (VisualEffects.Instance != null && PlayerController.Instance != null)
+                {
+                    Color stoneColor = Color.gray;
+                    VisualEffects.Instance.ShowResourcePopup(PlayerController.Instance.transform.position, "Stone", amount, stoneColor);
+                }
+                break;
+            case "population":
+                population += amount;
+                Debug.Log($"Population increased by {amount}! Total: {population}");
                 break;
         }
     }
@@ -71,13 +106,29 @@ public class ResourceManager : MonoBehaviour
                     return true;
                 }
                 break;
+            case "food":
+                if (food >= amount)
+                {
+                    food -= amount;
+                    Debug.Log($"Spent {amount} Food! Remaining: {food}");
+                    return true;
+                }
+                break;
+            case "stone":
+                if (stone >= amount)
+                {
+                    stone -= amount;
+                    Debug.Log($"Spent {amount} Stone! Remaining: {stone}");
+                    return true;
+                }
+                break;
         }
         return false;
     }
 
     public bool CanAffordMove()
     {
-        return gold >= movementCost || wood >= movementCost;
+        return gold >= movementCost || wood >= movementCost || food >= movementCost;
     }
 
     public void SpendMovementCost()
@@ -90,6 +141,10 @@ public class ResourceManager : MonoBehaviour
         {
             SpendResource("wood", movementCost);
         }
+        else if (food >= movementCost)
+        {
+            SpendResource("food", movementCost);
+        }
     }
 
     public int GetResource(string type)
@@ -100,6 +155,12 @@ public class ResourceManager : MonoBehaviour
                 return gold;
             case "wood":
                 return wood;
+            case "food":
+                return food;
+            case "stone":
+                return stone;
+            case "population":
+                return population;
             default:
                 return 0;
         }
@@ -116,6 +177,18 @@ public class ResourceManager : MonoBehaviour
             case "wood":
                 wood = amount;
                 Debug.Log($"Wood set to {wood}");
+                break;
+            case "food":
+                food = amount;
+                Debug.Log($"Food set to {food}");
+                break;
+            case "stone":
+                stone = amount;
+                Debug.Log($"Stone set to {stone}");
+                break;
+            case "population":
+                population = amount;
+                Debug.Log($"Population set to {population}");
                 break;
         }
     }

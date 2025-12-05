@@ -9,6 +9,9 @@ public class GameUI : MonoBehaviour
     [Header("Resource Display")]
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI woodText;
+    public TextMeshProUGUI foodText;
+    public TextMeshProUGUI stoneText;
+    public TextMeshProUGUI populationText;
 
     [Header("Progress Display")]
     public TextMeshProUGUI villagesText;
@@ -31,8 +34,18 @@ public class GameUI : MonoBehaviour
     public TextMeshProUGUI diplomaticCostText;
     public TextMeshProUGUI aggressiveCostText;
 
+    [Header("Threat UI")]
+    public GameObject threatPanel;
+    public TextMeshProUGUI threatNameText;
+    public TextMeshProUGUI threatDescriptionText;
+    public Button payOffButton;
+    public Button fightButton;
+    public TextMeshProUGUI payOffCostText;
+    public TextMeshProUGUI fightRewardText;
+
     private bool buildMode = false;
     private TribeEncounterSystem.TribeEncounter currentEncounter;
+    private EnemyThreatSystem.ThreatType currentThreat;
     private int currentEncounterX, currentEncounterY;
 
     private void Awake()
@@ -72,9 +85,19 @@ public class GameUI : MonoBehaviour
         if (ignoreButton != null)
             ignoreButton.onClick.AddListener(OnIgnoreChoice);
 
-        // Hide encounter panel initially
+        // Setup threat buttons
+        if (payOffButton != null)
+            payOffButton.onClick.AddListener(OnPayOffChoice);
+        
+        if (fightButton != null)
+            fightButton.onClick.AddListener(OnFightChoice);
+
+        // Hide panels initially
         if (encounterPanel != null)
             encounterPanel.SetActive(false);
+        
+        if (threatPanel != null)
+            threatPanel.SetActive(false);
 
         UpdateInstructions();
     }
@@ -106,6 +129,33 @@ public class GameUI : MonoBehaviour
             
             if (woodText != null)
                 woodText.text = $"Wood: {ResourceManager.Instance.GetResource("wood")}";
+            
+            if (foodText != null)
+                foodText.text = $"Food: {ResourceManager.Instance.GetResource("food")}";
+            
+            if (stoneText != null)
+                stoneText.text = $"Stone: {ResourceManager.Instance.GetResource("stone")}";
+            
+            if (populationText != null)
+                populationText.text = $"Population: {ResourceManager.Instance.GetResource("population")}";
+        }
+    }
+
+    void UpdateProgressDisplay()
+    {
+        if (GameManager.Instance != null)
+        {
+            if (villagesText != null)
+            {
+                int villages = GameManager.Instance.GetVillagesBuilt();
+                villagesText.text = $"Villages: {villages}/{GameManager.Instance.villagesToWin}";
+            }
+            
+            if (winConditionText != null)
+            {
+                int gold = ResourceManager.Instance?.GetResource("gold") ?? 0;
+                winConditionText.text = $"Goals: {GameManager.Instance.villagesToWin} Villages OR {GameManager.Instance.goldToWin} Gold";
+            }
         }
     }
 
@@ -257,5 +307,68 @@ public class GameUI : MonoBehaviour
             encounterPanel.SetActive(false);
         
         currentEncounter = null;
+    }
+
+    public void ShowThreatEncounter(EnemyThreatSystem.ThreatType threat)
+    {
+        currentThreat = threat;
+
+        if (threatPanel != null)
+        {
+            threatPanel.SetActive(true);
+            
+            if (threatNameText != null)
+                threatNameText.text = threat.name;
+            
+            if (threatDescriptionText != null)
+                threatDescriptionText.text = threat.description;
+            
+            if (payOffCostText != null)
+                payOffCostText.text = $"Pay Off ({threat.goldCost}G, {threat.woodCost}W, {threat.foodCost}F)";
+            
+            if (fightRewardText != null)
+                fightRewardText.text = $"Fight ({threat.successChance:P0} success, {threat.goldReward}G, {threat.woodReward}W, {threat.foodReward}F reward)";
+            
+            // Update button states based on resources
+            UpdateThreatButtons();
+        }
+    }
+
+    void UpdateThreatButtons()
+    {
+        if (ResourceManager.Instance == null || currentThreat == null) return;
+
+        bool canPayOff = ResourceManager.Instance.GetResource("gold") >= currentThreat.goldCost &&
+                        ResourceManager.Instance.GetResource("wood") >= currentThreat.woodCost &&
+                        ResourceManager.Instance.GetResource("food") >= currentThreat.foodCost;
+
+        if (payOffButton != null)
+            payOffButton.interactable = canPayOff;
+    }
+
+    void OnPayOffChoice()
+    {
+        if (currentThreat != null && EnemyThreatSystem.Instance != null)
+        {
+            EnemyThreatSystem.Instance.HandleThreatChoice(currentThreat, true);
+            HideThreatPanel();
+        }
+    }
+
+    void OnFightChoice()
+    {
+        if (currentThreat != null && EnemyThreatSystem.Instance != null)
+        {
+            EnemyThreatSystem.Instance.HandleThreatChoice(currentThreat, false);
+            HideThreatPanel();
+        }
+    }
+
+    void HideThreatPanel()
+    {
+        if (threatPanel != null)
+            threatPanel.SetActive(false);
+        
+        currentThreat = null;
     }
 }

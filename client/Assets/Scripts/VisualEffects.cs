@@ -1,8 +1,13 @@
 using UnityEngine;
+using System.Collections;
 
 public class VisualEffects : MonoBehaviour
 {
     public static VisualEffects Instance { get; private set; }
+
+    [Header("Effects")]
+    public GameObject resourcePopupPrefab;
+    public GameObject buildEffectPrefab;
 
     private void Awake()
     {
@@ -101,5 +106,92 @@ public class VisualEffects : MonoBehaviour
         
         tile.transform.localScale = originalScale;
         renderer.color = originalColor;
+    }
+
+    public void ShowResourcePopup(Vector3 position, string resource, int amount, Color color)
+    {
+        if (resourcePopupPrefab == null)
+        {
+            CreateDefaultResourcePopup(position, resource, amount, color);
+            return;
+        }
+
+        GameObject popup = Instantiate(resourcePopupPrefab, position + Vector3.up * 2f, Quaternion.identity);
+        TextMesh textMesh = popup.GetComponentInChildren<TextMesh>();
+        
+        if (textMesh != null)
+        {
+            textMesh.text = $"{(amount > 0 ? "+" : "")}{amount} {resource}";
+            textMesh.color = color;
+        }
+
+        StartCoroutine(AnimatePopup(popup));
+    }
+
+    void CreateDefaultResourcePopup(Vector3 position, string resource, int amount, Color color)
+    {
+        GameObject popup = new GameObject("ResourcePopup");
+        popup.transform.position = position + Vector3.up * 2f;
+
+        TextMesh textMesh = popup.AddComponent<TextMesh>();
+        textMesh.text = $"{(amount > 0 ? "+" : "")}{amount} {resource}";
+        textMesh.color = color;
+        textMesh.fontSize = 20;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+
+        StartCoroutine(AnimatePopup(popup));
+    }
+
+    IEnumerator AnimatePopup(GameObject popup)
+    {
+        Vector3 startPos = popup.transform.position;
+        Vector3 endPos = startPos + Vector3.up * 3f;
+        float duration = 2f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            popup.transform.position = Vector3.Lerp(startPos, endPos, elapsed / duration);
+            
+            TextMesh textMesh = popup.GetComponent<TextMesh>();
+            if (textMesh != null)
+            {
+                Color color = textMesh.color;
+                color.a = 1f - (elapsed / duration);
+                textMesh.color = color;
+            }
+            
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(popup);
+    }
+
+    public void HighlightTile(GameObject tile, Color color, float duration = 1f)
+    {
+        if (tile == null) return;
+
+        Renderer renderer = tile.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            StartCoroutine(AnimateTileHighlight(renderer, color, duration));
+        }
+    }
+
+    IEnumerator AnimateTileHighlight(Renderer renderer, Color highlightColor, float duration)
+    {
+        Color originalColor = renderer.material.color;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            float t = Mathf.PingPong(elapsed * 2f, 1f);
+            renderer.material.color = Color.Lerp(originalColor, highlightColor, t * 0.5f);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        renderer.material.color = originalColor;
     }
 }

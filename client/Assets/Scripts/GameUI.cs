@@ -16,6 +16,8 @@ public class GameUI : MonoBehaviour
     [Header("Progress Display")]
     public TextMeshProUGUI villagesText;
     public TextMeshProUGUI winConditionText;
+    public TextMeshProUGUI levelText;
+    public TextMeshProUGUI experienceText;
 
     [Header("Build UI")]
     public Button buildVillageButton;
@@ -42,6 +44,13 @@ public class GameUI : MonoBehaviour
     public Button fightButton;
     public TextMeshProUGUI payOffCostText;
     public TextMeshProUGUI fightRewardText;
+
+    [Header("Quest UI")]
+    public GameObject questNotificationPanel;
+    public TextMeshProUGUI questNameText;
+    public TextMeshProUGUI questDescriptionText;
+    public TextMeshProUGUI questRewardText;
+    public Button questAcceptButton;
 
     private bool buildMode = false;
     private TribeEncounterSystem.TribeEncounter currentEncounter;
@@ -92,12 +101,19 @@ public class GameUI : MonoBehaviour
         if (fightButton != null)
             fightButton.onClick.AddListener(OnFightChoice);
 
+        // Setup quest button
+        if (questAcceptButton != null)
+            questAcceptButton.onClick.AddListener(OnQuestAccept);
+
         // Hide panels initially
         if (encounterPanel != null)
             encounterPanel.SetActive(false);
         
         if (threatPanel != null)
             threatPanel.SetActive(false);
+            
+        if (questNotificationPanel != null)
+            questNotificationPanel.SetActive(false);
 
         UpdateInstructions();
     }
@@ -155,6 +171,24 @@ public class GameUI : MonoBehaviour
             {
                 int gold = ResourceManager.Instance?.GetResource("gold") ?? 0;
                 winConditionText.text = $"Goals: {GameManager.Instance.villagesToWin} Villages OR {GameManager.Instance.goldToWin} Gold";
+            }
+        }
+        
+        // Update progression display
+        if (ProgressionSystem.Instance != null)
+        {
+            if (levelText != null)
+            {
+                levelText.text = $"Level: {ProgressionSystem.Instance.currentLevel}";
+            }
+            
+            if (experienceText != null)
+            {
+                int expToNext = ProgressionSystem.Instance.GetExperienceToNextLevel();
+                float progress = ProgressionSystem.Instance.GetExperienceProgress();
+                experienceText.text = expToNext > 0 
+                    ? $"XP: {ProgressionSystem.Instance.currentExperience}/{expToNext} ({progress:P0})"
+                    : $"XP: {ProgressionSystem.Instance.currentExperience} (MAX)";
             }
         }
     }
@@ -370,5 +404,52 @@ public class GameUI : MonoBehaviour
             threatPanel.SetActive(false);
         
         currentThreat = null;
+    }
+
+    public void ShowNewQuest(QuestSystem.Quest quest)
+    {
+        if (questNotificationPanel != null)
+        {
+            questNotificationPanel.SetActive(true);
+            
+            if (questNameText != null)
+                questNameText.text = quest.questName;
+            
+            if (questDescriptionText != null)
+                questDescriptionText.text = quest.description;
+            
+            if (questRewardText != null)
+                questRewardText.text = $"Rewards: {quest.goldReward}G, {quest.woodReward}W, {quest.foodReward}F, {quest.experienceReward} XP";
+        }
+    }
+
+    public void ShowQuestCompletion(QuestSystem.Quest quest)
+    {
+        if (questNotificationPanel != null)
+        {
+            // Show completion message briefly
+            if (questNameText != null)
+                questNameText.text = "QUEST COMPLETE!";
+            
+            if (questDescriptionText != null)
+                questDescriptionText.text = $"{quest.questName} completed!";
+            
+            if (questRewardText != null)
+                questRewardText.text = $"Earned: {quest.goldReward}G, {quest.woodReward}W, {quest.foodReward}F, {quest.experienceReward} XP";
+            
+            // Hide after 3 seconds
+            Invoke("HideQuestPanel", 3f);
+        }
+    }
+
+    void HideQuestPanel()
+    {
+        if (questNotificationPanel != null)
+            questNotificationPanel.SetActive(false);
+    }
+
+    void OnQuestAccept()
+    {
+        HideQuestPanel();
     }
 }

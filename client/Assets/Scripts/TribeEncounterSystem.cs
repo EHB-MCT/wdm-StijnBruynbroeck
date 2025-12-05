@@ -88,79 +88,17 @@ public class TribeEncounterSystem : MonoBehaviour
 
         TribeEncounter encounter = possibleEncounters[Random.Range(0, possibleEncounters.Length)];
         
-        Debug.Log($"=== TRIBE ENCOUNTER ===");
-        Debug.Log($"Location: ({gridX}, {gridY})");
-        Debug.Log($"Tribe: {encounter.tribeName}");
-        Debug.Log($"Description: {encounter.description}");
-        Debug.Log($"Choose your action:");
-        Debug.Log($"1. Diplomatic (Cost: {encounter.diplomacyCost} gold, Reward: {encounter.diplomacyReward} gold)");
-        Debug.Log($"2. Aggressive (Cost: {encounter.aggressionCost} gold, Reward: {encounter.aggressionReward} gold)");
-        Debug.Log($"3. Ignore (No cost, no reward)");
-        Debug.Log($"Press 1, 2, or 3 to choose");
-
+        Debug.Log($"Tribe Encounter: {encounter.tribeName} at ({gridX}, {gridY})");
         GameLogger.Instance.RecordEvent($"Tribe Encounter: {encounter.tribeName}", gridX, gridY);
 
-        // In a real game, you'd show a UI dialog here
-        // For now, we'll use keyboard input in Update
-        StartCoroutine(WaitForPlayerChoice(encounter, gridX, gridY));
-    }
-
-    private System.Collections.IEnumerator WaitForPlayerChoice(TribeEncounter encounter, int gridX, int gridY)
-    {
-        bool choiceMade = false;
-        
-        while (!choiceMade)
+        // Show the UI popup
+        if (GameUI.Instance != null)
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                HandleDiplomaticChoice(encounter, gridX, gridY);
-                choiceMade = true;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                HandleAggressiveChoice(encounter, gridX, gridY);
-                choiceMade = true;
-            }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                Debug.Log("You chose to ignore the tribe and moved on.");
-                GameLogger.Instance.RecordEvent("Ignored Tribe", gridX, gridY);
-                choiceMade = true;
-            }
-            
-            yield return null;
+            GameUI.Instance.ShowTribeEncounter(encounter, gridX, gridY);
         }
     }
 
-    private void HandleDiplomaticChoice(TribeEncounter encounter, int gridX, int gridY)
-    {
-        if (ResourceManager.Instance.SpendResource("gold", encounter.diplomacyCost))
-        {
-            ResourceManager.Instance.AddResource("gold", encounter.diplomacyReward);
-            Debug.Log($"Diplomatic approach successful! Gained {encounter.diplomacyReward} gold.");
-            GameLogger.Instance.RecordEvent($"Diplomatic with {encounter.tribeName}", gridX, gridY);
-        }
-        else
-        {
-            Debug.Log("Not enough gold for diplomatic approach!");
-            GameLogger.Instance.RecordEvent($"Diplomatic Failed (No Gold)", gridX, gridY);
-        }
-    }
 
-    private void HandleAggressiveChoice(TribeEncounter encounter, int gridX, int gridY)
-    {
-        if (ResourceManager.Instance.SpendResource("gold", encounter.aggressionCost))
-        {
-            ResourceManager.Instance.AddResource("gold", encounter.aggressionReward);
-            Debug.Log($"Aggressive approach successful! Gained {encounter.aggressionReward} gold.");
-            GameLogger.Instance.RecordEvent($"Aggressive with {encounter.tribeName}", gridX, gridY);
-        }
-        else
-        {
-            Debug.Log("Not enough gold for aggressive approach!");
-            GameLogger.Instance.RecordEvent($"Aggressive Failed (No Gold)", gridX, gridY);
-        }
-    }
 
     public bool ShouldTriggerEncounter()
     {

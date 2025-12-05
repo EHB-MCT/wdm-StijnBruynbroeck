@@ -16,6 +16,12 @@ public class BuildingSystem : MonoBehaviour
 
     public List<BuildingType> buildingTypes = new List<BuildingType>();
     private Dictionary<Vector2Int, GameObject> placedBuildings = new Dictionary<Vector2Int, GameObject>();
+    
+    [Header("Village Benefits")]
+    public int goldPerVillagePerInterval = 2;
+    public int woodPerVillagePerInterval = 1;
+    public float incomeInterval = 5.0f;
+    private float lastIncomeTime;
 
     private void Awake()
     {
@@ -43,6 +49,32 @@ public class BuildingSystem : MonoBehaviour
     void Start()
     {
         InitializeDefaultBuildings();
+        lastIncomeTime = Time.time;
+    }
+
+    void Update()
+    {
+        if (Time.time - lastIncomeTime >= incomeInterval)
+        {
+            GenerateVillageIncome();
+            lastIncomeTime = Time.time;
+        }
+    }
+
+    void GenerateVillageIncome()
+    {
+        int villageCount = GetBuildingCount("Village");
+        if (villageCount > 0 && ResourceManager.Instance != null)
+        {
+            int goldIncome = villageCount * goldPerVillagePerInterval;
+            int woodIncome = villageCount * woodPerVillagePerInterval;
+            
+            ResourceManager.Instance.AddResource("gold", goldIncome);
+            ResourceManager.Instance.AddResource("wood", woodIncome);
+            
+            Debug.Log($"Village income: +{goldIncome} Gold, +{woodIncome} Wood from {villageCount} villages");
+            GameLogger.Instance.RecordEvent($"Village Income: {goldIncome}G, {woodIncome}W", 0, 0);
+        }
     }
 
     void InitializeDefaultBuildings()
@@ -126,5 +158,26 @@ public class BuildingSystem : MonoBehaviour
     public List<Vector2Int> GetPlacedVillages()
     {
         return new List<Vector2Int>(placedBuildings.Keys);
+    }
+
+    public int GetBuildingCount(string buildingName)
+    {
+        int count = 0;
+        foreach (var building in placedBuildings)
+        {
+            if (building.Value.name.StartsWith(buildingName))
+                count++;
+        }
+        return count;
+    }
+
+    public void ClearAllBuildings()
+    {
+        foreach (var building in placedBuildings.Values)
+        {
+            if (building != null)
+                Destroy(building);
+        }
+        placedBuildings.Clear();
     }
 }

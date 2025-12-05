@@ -10,6 +10,10 @@ public class GameUI : MonoBehaviour
     public TextMeshProUGUI goldText;
     public TextMeshProUGUI woodText;
 
+    [Header("Progress Display")]
+    public TextMeshProUGUI villagesText;
+    public TextMeshProUGUI winConditionText;
+
     [Header("Build UI")]
     public Button buildVillageButton;
     public TextMeshProUGUI buildCostText;
@@ -77,6 +81,7 @@ public class GameUI : MonoBehaviour
     void Update()
     {
         UpdateResourceDisplay();
+        UpdateProgressDisplay();
         UpdateBuildButton();
 
         if (Input.GetKeyDown(KeyCode.B))

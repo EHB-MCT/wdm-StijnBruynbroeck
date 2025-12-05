@@ -104,4 +104,19 @@ public class ResourceManager : MonoBehaviour
                 return 0;
         }
     }
+
+    public void SetResource(string type, int amount)
+    {
+        switch (type.ToLower())
+        {
+            case "gold":
+                gold = amount;
+                Debug.Log($"Gold set to {gold}");
+                break;
+            case "wood":
+                wood = amount;
+                Debug.Log($"Wood set to {wood}");
+                break;
+        }
+    }
 }

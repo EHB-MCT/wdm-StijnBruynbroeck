@@ -164,12 +164,9 @@ public class PlayerController : MonoBehaviour
 
         CheckTileResources();
 
-        if (Random.value < 0.3f)
+        if (TribeEncounterSystem.Instance.ShouldTriggerEncounter())
         {
-            string eventType = Random.value < 0.5f ? "Friendly Tribe" : "Hostile Tribe";
-            Debug.Log($"Encounter: {eventType}");
-            GameLogger.Instance.RecordEvent(eventType, gridX,gridY);
-            
+            TribeEncounterSystem.Instance.TriggerTribeEncounter(gridX, gridY);
         }
     }
 

@@ -172,14 +172,54 @@ public class EnemyThreatSystem : MonoBehaviour
     {
         if (payOff)
         {
-            // Pay off the threat
+            // Pay off threat
             if (ResourceManager.Instance.SpendResource("gold", threat.goldCost) &&
                 ResourceManager.Instance.SpendResource("wood", threat.woodCost) &&
                 ResourceManager.Instance.SpendResource("food", threat.foodCost))
             {
                 Debug.Log($"Successfully paid off {threat.name}!");
                 GameLogger.Instance.RecordEvent($"Paid off {threat.name}", 0, 0);
+                
+                // Grant experience for diplomacy
+                if (ProgressionSystem.Instance != null)
+                {
+                    ProgressionSystem.Instance.OnThreatPaidOff();
+                }
             }
+            else
+            {
+                Debug.Log($"Not enough resources to pay off {threat.name}!");
+                GameLogger.Instance.RecordEvent($"Failed to pay off {threat.name}", 0, 0);
+                // Apply penalty
+                ApplyThreatPenalty(threat);
+            }
+        }
+        else
+        {
+            // Fight threat
+            if (Random.value < threat.successChance)
+            {
+                Debug.Log($"Successfully defeated {threat.name}!");
+                GameLogger.Instance.RecordEvent($"Defeated {threat.name}", 0, 0);
+                
+                // Give rewards
+                ResourceManager.Instance.AddResource("gold", threat.goldReward);
+                ResourceManager.Instance.AddResource("wood", threat.woodReward);
+                ResourceManager.Instance.AddResource("food", threat.foodReward);
+                
+                // Grant experience for combat
+                if (ProgressionSystem.Instance != null)
+                {
+                    ProgressionSystem.Instance.OnThreatDefeated();
+                }
+            }
+            else
+            {
+                Debug.Log($"Failed to defeat {threat.name}!");
+                GameLogger.Instance.RecordEvent($"Failed to defeat {threat.name}", 0, 0);
+                ApplyThreatPenalty(threat);
+            }
+        }
             else
             {
                 Debug.Log($"Not enough resources to pay off {threat.name}!");
@@ -209,6 +249,21 @@ public class EnemyThreatSystem : MonoBehaviour
             }
         }
     }
+
+    void ApplyThreatPenalty(ThreatType threat)
+    {
+        // Lose resources
+        int goldLoss = Mathf.Min(ResourceManager.Instance.GetResource("gold"), threat.goldCost / 2);
+        int woodLoss = Mathf.Min(ResourceManager.Instance.GetResource("wood"), threat.woodCost / 2);
+        int foodLoss = Mathf.Min(ResourceManager.Instance.GetResource("food"), threat.foodCost / 2);
+
+        ResourceManager.Instance.SpendResource("gold", goldLoss);
+        ResourceManager.Instance.SpendResource("wood", woodLoss);
+        ResourceManager.Instance.SpendResource("food", foodLoss);
+
+        Debug.Log($"Threat penalty! Lost: {goldLoss} Gold, {woodLoss} Wood, {foodLoss} Food");
+    }
+}
 
     void ApplyThreatPenalty(ThreatType threat)
     {

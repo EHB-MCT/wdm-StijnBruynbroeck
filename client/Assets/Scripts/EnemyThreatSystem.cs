@@ -100,7 +100,7 @@ public class EnemyThreatSystem : MonoBehaviour
                 woodReward = 6,
                 foodReward = 4,
                 successChance = 0.8f,
-                threatColor = new Color(1f, 0.5f, 0f) // Orange
+                threatColor = new Color(1f, 0.5f, 0f) 
             }
         };
     }
@@ -116,14 +116,15 @@ public class EnemyThreatSystem : MonoBehaviour
 
     void CheckForThreats()
     {
-        if (BuildingSystem.Instance == null || GameManager.Instance == null) return;
+     
+        if (BuildingSystem.Instance == null) return;
 
         int villageCount = BuildingSystem.Instance.GetBuildingCount("Village");
         if (villageCount == 0) return;
 
-        // Increase threat chance based on village count
-        float threatChance = baseThreatChance + (villageCount / villagesPerThreatLevel) * 0.1f;
-        threatChance = Mathf.Min(threatChance, 0.8f); // Cap at 80%
+    
+        float threatChance = baseThreatChance + (villageCount / (float)villagesPerThreatLevel) * 0.1f;
+        threatChance = Mathf.Min(threatChance, 0.8f); 
 
         if (Random.value < threatChance)
         {
@@ -139,112 +140,67 @@ public class EnemyThreatSystem : MonoBehaviour
         
         Debug.Log($"=== ENEMY THREAT ===");
         Debug.Log($"Threat: {threat.name}");
-        Debug.Log($"Description: {threat.description}");
         Debug.Log($"Defense Cost: {threat.goldCost} Gold, {threat.woodCost} Wood, {threat.foodCost} Food");
-        Debug.Log($"Potential Reward: {threat.goldReward} Gold, {threat.woodReward} Wood, {threat.foodReward} Food");
         
-        GameLogger.Instance.RecordEvent($"Threat: {threat.name}", 0, 0);
+        GameLogger.Instance.RecordEvent($"Threat Encountered: {threat.name}", 0, 0);
 
-        // Show threat UI
+ 
         if (GameUI.Instance != null)
         {
-            GameUI.Instance.ShowThreatEncounter(threat);
+         
+            Debug.Log("UI voor threat zou hier moeten openen");
         }
 
-        // Visual effect
-        if (VisualEffects.Instance != null && BuildingSystem.Instance != null)
-        {
-            var villages = BuildingSystem.Instance.GetPlacedVillages();
-            if (villages.Count > 0)
-            {
-                Vector2Int randomVillage = villages[Random.Range(0, villages.Count)];
-                HexGrid grid = FindObjectOfType<HexGrid>();
-                if (grid != null)
-                {
-                    GameObject tile = grid.GetTile(randomVillage.x, randomVillage.y);
-                    VisualEffects.Instance.HighlightTile(tile, threat.threatColor, 3f);
-                }
-            }
-        }
+       
     }
 
     public void HandleThreatChoice(ThreatType threat, bool payOff)
     {
         if (payOff)
         {
-            // Pay off threat
-            if (ResourceManager.Instance.SpendResource("gold", threat.goldCost) &&
-                ResourceManager.Instance.SpendResource("wood", threat.woodCost) &&
-                ResourceManager.Instance.SpendResource("food", threat.foodCost))
+          
+            bool hasGold = ResourceManager.Instance.GetResource("gold") >= threat.goldCost;
+            bool hasWood = ResourceManager.Instance.GetResource("wood") >= threat.woodCost;
+            
+            bool hasFood = ResourceManager.Instance.GetResource("food") >= threat.foodCost; 
+
+            if (hasGold && hasWood && hasFood)
             {
+                
+                ResourceManager.Instance.SpendResource("gold", threat.goldCost);
+                ResourceManager.Instance.SpendResource("wood", threat.woodCost);
+                ResourceManager.Instance.SpendResource("food", threat.foodCost);
+
                 Debug.Log($"Successfully paid off {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Paid off {threat.name}", 0, 0);
-                
-                // Grant experience for diplomacy
-                if (ProgressionSystem.Instance != null)
-                {
-                    ProgressionSystem.Instance.OnThreatPaidOff();
-                }
+                GameLogger.Instance.RecordEvent($"Paid off threat: {threat.name}", 0, 0);
             }
             else
             {
+                
                 Debug.Log($"Not enough resources to pay off {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Failed to pay off {threat.name}", 0, 0);
-                // Apply penalty
+                GameLogger.Instance.RecordEvent($"Failed payment: {threat.name}", 0, 0);
                 ApplyThreatPenalty(threat);
             }
         }
         else
         {
-            // Fight threat
+           
             if (Random.value < threat.successChance)
             {
+                
                 Debug.Log($"Successfully defeated {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Defeated {threat.name}", 0, 0);
+                GameLogger.Instance.RecordEvent($"Defeated threat: {threat.name}", 0, 0);
                 
-                // Give rewards
-                ResourceManager.Instance.AddResource("gold", threat.goldReward);
-                ResourceManager.Instance.AddResource("wood", threat.woodReward);
-                ResourceManager.Instance.AddResource("food", threat.foodReward);
                 
-                // Grant experience for combat
-                if (ProgressionSystem.Instance != null)
-                {
-                    ProgressionSystem.Instance.OnThreatDefeated();
-                }
-            }
-            else
-            {
-                Debug.Log($"Failed to defeat {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Failed to defeat {threat.name}", 0, 0);
-                ApplyThreatPenalty(threat);
-            }
-        }
-            else
-            {
-                Debug.Log($"Not enough resources to pay off {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Failed to pay off {threat.name}", 0, 0);
-                // Apply penalty
-                ApplyThreatPenalty(threat);
-            }
-        }
-        else
-        {
-            // Fight the threat
-            if (Random.value < threat.successChance)
-            {
-                Debug.Log($"Successfully defeated {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Defeated {threat.name}", 0, 0);
-                
-                // Give rewards
                 ResourceManager.Instance.AddResource("gold", threat.goldReward);
                 ResourceManager.Instance.AddResource("wood", threat.woodReward);
                 ResourceManager.Instance.AddResource("food", threat.foodReward);
             }
             else
             {
+                
                 Debug.Log($"Failed to defeat {threat.name}!");
-                GameLogger.Instance.RecordEvent($"Failed to defeat {threat.name}", 0, 0);
+                GameLogger.Instance.RecordEvent($"Lost fight: {threat.name}", 0, 0);
                 ApplyThreatPenalty(threat);
             }
         }
@@ -252,25 +208,15 @@ public class EnemyThreatSystem : MonoBehaviour
 
     void ApplyThreatPenalty(ThreatType threat)
     {
-        // Lose resources
+        // Straf: Verlies de helft van de resources die het had gekost
         int goldLoss = Mathf.Min(ResourceManager.Instance.GetResource("gold"), threat.goldCost / 2);
         int woodLoss = Mathf.Min(ResourceManager.Instance.GetResource("wood"), threat.woodCost / 2);
-        int foodLoss = Mathf.Min(ResourceManager.Instance.GetResource("food"), threat.foodCost / 2);
-
-        ResourceManager.Instance.SpendResource("gold", goldLoss);
-        ResourceManager.Instance.SpendResource("wood", woodLoss);
-        ResourceManager.Instance.SpendResource("food", foodLoss);
-
-        Debug.Log($"Threat penalty! Lost: {goldLoss} Gold, {woodLoss} Wood, {foodLoss} Food");
-    }
-}
-
-    void ApplyThreatPenalty(ThreatType threat)
-    {
-        // Lose resources
-        int goldLoss = Mathf.Min(ResourceManager.Instance.GetResource("gold"), threat.goldCost / 2);
-        int woodLoss = Mathf.Min(ResourceManager.Instance.GetResource("wood"), threat.woodCost / 2);
-        int foodLoss = Mathf.Min(ResourceManager.Instance.GetResource("food"), threat.foodCost / 2);
+        
+        // Let op: Food check
+        int foodLoss = 0; 
+        if(ResourceManager.Instance.GetResource("food") > 0) {
+             foodLoss = Mathf.Min(ResourceManager.Instance.GetResource("food"), threat.foodCost / 2);
+        }
 
         ResourceManager.Instance.SpendResource("gold", goldLoss);
         ResourceManager.Instance.SpendResource("wood", woodLoss);

@@ -51,6 +51,12 @@ public class PlayerController : MonoBehaviour
         {
             isMoving = false;
             RevealTiles();
+            
+            // Grant experience for movement
+            if (ProgressionSystem.Instance != null)
+            {
+                ProgressionSystem.Instance.OnPlayerMoved();
+            }
         }
 
       

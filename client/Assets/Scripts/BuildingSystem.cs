@@ -119,6 +119,12 @@ public class BuildingSystem : MonoBehaviour
             Debug.Log($"Village built at ({gridX}, {gridY})!");
             GameLogger.Instance.RecordEvent("Built Village", gridX, gridY);
             
+            // Grant experience for building
+            if (ProgressionSystem.Instance != null)
+            {
+                ProgressionSystem.Instance.OnVillageBuilt();
+            }
+            
             return true;
         }
 

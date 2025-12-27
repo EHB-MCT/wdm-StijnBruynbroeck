@@ -205,11 +205,8 @@ class LogService {
 
 	async getAllUsers() {
 		const result = await pool.query(`
-			SELECT u.uid, u.created_at, u.last_session, u.total_sessions, u.total_playtime,
-				   p.risk_tolerance, p.decision_speed, p.resource_efficiency, p.strategic_score,
-				   p.engagement_level, p.emotional_responsiveness, p.influence_susceptibility, p.skill_progression
+			SELECT u.uid, u.created_at, u.last_session, u.total_sessions, u.total_playtime
 			FROM users u
-			LEFT JOIN user_profiles p ON u.uid = p.uid
 			ORDER BY u.created_at DESC
 		`);
 		return result.rows;

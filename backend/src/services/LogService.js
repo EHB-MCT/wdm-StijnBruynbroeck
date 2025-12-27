@@ -35,7 +35,7 @@ class LogService {
                     influence_susceptibility FLOAT DEFAULT 0.5,
                     skill_progression FLOAT DEFAULT 0.5,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 
@@ -48,7 +48,7 @@ class LogService {
                     player_response VARCHAR(50),
                     effectiveness_score FLOAT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 
@@ -61,7 +61,7 @@ class LogService {
                     context_data JSONB,
                     session_id VARCHAR(50),
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 
@@ -76,7 +76,7 @@ class LogService {
                     decisions_made INTEGER DEFAULT 0,
                     resources_gained INTEGER DEFAULT 0,
                     resources_spent INTEGER DEFAULT 0,
-                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 	}

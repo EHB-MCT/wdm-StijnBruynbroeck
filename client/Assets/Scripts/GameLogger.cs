@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 using System.Collections;
+using UnityEngine.Networking;
 
 public class GameLogger : MonoBehaviour
 {
@@ -60,7 +61,8 @@ public class GameLogger : MonoBehaviour
     private IEnumerator PostRequest(string url, string json)
     {
         var webRequest = UnityWebRequest.PostWwwForm(url, json);
-        webRequest.certificateHandler = new UnityWebRequestCertHandler();
+        webRequest.useHttpContinue = false;
+        webRequest.chunkedTransfer = false;
         
         byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
         webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);

@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 targetPos;
     private bool isMoving = false;
+    private float lastMoveTime;
+    private float decisionStartTime;
 
     private void Awake()
     {
@@ -71,6 +73,8 @@ public class PlayerController : MonoBehaviour
 
     void HandleClick()
     {
+        decisionStartTime = Time.time;
+        
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             HandleBuildAction();
@@ -153,35 +157,57 @@ public class PlayerController : MonoBehaviour
     
      void TryMoveTo(int x, int y)
     {
+        float decisionTime = Time.time - decisionStartTime;
         
         if (Mathf.Abs(x - gridX) > 1 || Mathf.Abs(y - gridY) > 1)
         {
             Debug.Log("Te ver om in één beurt te bewegen!");
+            GameLogger.Instance.RecordDecisionTiming("InvalidMove", decisionTime, $"Target:({x},{y})");
             return;
         }
 
         if (!ResourceManager.Instance.CanAffordMove())
         {
             Debug.Log("Not enough resources to move!");
+            GameLogger.Instance.RecordDecisionTiming("MoveBlocked", decisionTime, "InsufficientResources");
             return;
         }
 
         MoveTo(x, y);
+        GameLogger.Instance.RecordDecisionTiming("ValidMove", decisionTime, $"Target:({x},{y})");
     }
 
 
     void MoveTo(int x, int y)
     {
+        lastMoveTime = Time.time;
         gridX = x;
         gridY = y;
         targetPos = grid.GetTile(gridX, gridY).transform.position + Vector3.up * 0.5f;
         isMoving = true;    
         
+        // Track resources before and after move
+        int goldBefore = ResourceManager.Instance.GetResource("gold");
+        int woodBefore = ResourceManager.Instance.GetResource("wood");
+        
         ResourceManager.Instance.SpendMovementCost();
+        
+        int goldAfter = ResourceManager.Instance.GetResource("gold");
+        int woodAfter = ResourceManager.Instance.GetResource("wood");
         
         Debug.Log($"Player moved to tile: ({gridX},{gridY})");
 
         GameLogger.Instance.RecordMove(gridX, gridY);
+        
+        // Track resource changes
+        if (goldBefore != goldAfter)
+        {
+            GameLogger.Instance.RecordResourceManagement("Spent", "gold", goldBefore - goldAfter, goldAfter);
+        }
+        if (woodBefore != woodAfter)
+        {
+            GameLogger.Instance.RecordResourceManagement("Spent", "wood", woodBefore - woodAfter, woodAfter);
+        }
 
         CheckTileResources();
 
@@ -197,13 +223,21 @@ public class PlayerController : MonoBehaviour
         {
             if (Random.value < 0.5f)
             {
-                ResourceManager.Instance.AddResource("wood", Random.Range(2, 6));
-                Debug.Log("Found a forest! Gained wood.");
+                int woodAmount = Random.Range(2, 6);
+                ResourceManager.Instance.AddResource("wood", woodAmount);
+                int currentWood = ResourceManager.Instance.GetResource("wood");
+                Debug.Log($"Found a forest! Gained {woodAmount} wood. Total: {currentWood}");
+                GameLogger.Instance.RecordResourceManagement("Found", "wood", woodAmount, currentWood);
+                GameLogger.Instance.RecordEngagementMetrics("ResourceDiscovery", woodAmount, "Forest");
             }
             else
             {
-                ResourceManager.Instance.AddResource("gold", Random.Range(1, 4));
-                Debug.Log("Found a mountain! Gained gold.");
+                int goldAmount = Random.Range(1, 4);
+                ResourceManager.Instance.AddResource("gold", goldAmount);
+                int currentGold = ResourceManager.Instance.GetResource("gold");
+                Debug.Log($"Found a mountain! Gained {goldAmount} gold. Total: {currentGold}");
+                GameLogger.Instance.RecordResourceManagement("Found", "gold", goldAmount, currentGold);
+                GameLogger.Instance.RecordEngagementMetrics("ResourceDiscovery", goldAmount, "Mountain");
             }
         }
     }

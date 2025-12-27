@@ -82,10 +82,18 @@ class LogService {
 	}
 
 	async logGameAction(uid, type, data) {
-		await pool.query(
-			`INSERT INTO $1, user_uid) DO NOTHING`,
-			[uid]
-		);
+		try {
+			const dataString = JSON.stringify(data);
+			const result = await pool.query(
+				`INSERT INTO game_actions (user_uid, action_type, action_data) VALUES ($1, $2, $3)`,
+				[uid, type, dataString]
+			);
+			return { status: "success" };
+		} catch (error) {
+			console.error('SQL Error in logGameAction:', error);
+			throw error;
+		}
+	}
 		
 		await pool.query(
 			`INSERT INTO $1, user_uid, action_type, action_data) VALUES ($1, $2, $3)`,

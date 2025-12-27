@@ -99,11 +99,22 @@ public class BuildingSystem : MonoBehaviour
 
     public bool TryBuildVillage(int gridX, int gridY)
     {
-        if (!CanBuildBuilding("Village")) return false;
+        float decisionStartTime = Time.time;
+        int goldBefore = ResourceManager.Instance.GetResource("gold");
+        int woodBefore = ResourceManager.Instance.GetResource("wood");
+        
+        if (!CanBuildBuilding("Village")) 
+        {
+            float decisionTime = Time.time - decisionStartTime;
+            GameLogger.Instance.RecordStrategicChoice("BuildAttempt", "Village_Failed_Resources", decisionTime);
+            return false;
+        }
 
         Vector2Int position = new Vector2Int(gridX, gridY);
         if (placedBuildings.ContainsKey(position))
         {
+            float decisionTime = Time.time - decisionStartTime;
+            GameLogger.Instance.RecordStrategicChoice("BuildAttempt", "Village_Failed_Occupied", decisionTime);
             Debug.Log("There's already a building at this position!");
             return false;
         }
@@ -113,11 +124,18 @@ public class BuildingSystem : MonoBehaviour
         if (ResourceManager.Instance.SpendResource("gold", villageBuilding.goldCost) &&
             ResourceManager.Instance.SpendResource("wood", villageBuilding.woodCost))
         {
+            float decisionTime = Time.time - decisionStartTime;
+            int goldAfter = ResourceManager.Instance.GetResource("gold");
+            int woodAfter = ResourceManager.Instance.GetResource("wood");
+            
             GameObject villageMarker = CreateVillageMarker(gridX, gridY);
             placedBuildings[position] = villageMarker;
             
             Debug.Log($"Village built at ({gridX}, {gridY})!");
             GameLogger.Instance.RecordEvent("Built Village", gridX, gridY);
+            GameLogger.Instance.RecordStrategicChoice("BuildSuccess", "Village", decisionTime);
+            GameLogger.Instance.RecordResourceManagement("Spent", "gold", villageBuilding.goldCost, goldAfter);
+            GameLogger.Instance.RecordResourceManagement("Spent", "wood", villageBuilding.woodCost, woodAfter);
             
             // Grant experience for building
             if (ProgressionSystem.Instance != null)

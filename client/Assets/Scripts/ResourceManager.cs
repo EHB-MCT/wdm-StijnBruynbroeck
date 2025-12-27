@@ -95,6 +95,7 @@ public class ResourceManager : MonoBehaviour
                 {
                     gold -= amount;
                     Debug.Log($"Spent {amount} Gold! Remaining: {gold}");
+                    GameLogger.Instance.RecordResourceManagement("Spent", "gold", amount, gold);
                     return true;
                 }
                 break;
@@ -103,6 +104,7 @@ public class ResourceManager : MonoBehaviour
                 {
                     wood -= amount;
                     Debug.Log($"Spent {amount} Wood! Remaining: {wood}");
+                    GameLogger.Instance.RecordResourceManagement("Spent", "wood", amount, wood);
                     return true;
                 }
                 break;
@@ -111,6 +113,7 @@ public class ResourceManager : MonoBehaviour
                 {
                     food -= amount;
                     Debug.Log($"Spent {amount} Food! Remaining: {food}");
+                    GameLogger.Instance.RecordResourceManagement("Spent", "food", amount, food);
                     return true;
                 }
                 break;
@@ -119,10 +122,12 @@ public class ResourceManager : MonoBehaviour
                 {
                     stone -= amount;
                     Debug.Log($"Spent {amount} Stone! Remaining: {stone}");
+                    GameLogger.Instance.RecordResourceManagement("Spent", "stone", amount, stone);
                     return true;
                 }
                 break;
         }
+        GameLogger.Instance.RecordResourceManagement("FailedSpend", type, amount, GetResource(type));
         return false;
     }
 

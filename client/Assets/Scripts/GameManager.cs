@@ -105,6 +105,15 @@ public class GameManager : MonoBehaviour
         
         Debug.Log($"GAME WON! Time: {gameTime:F1} seconds");
         GameLogger.Instance.RecordEvent($"GAME WON - {message}", 0, 0);
+        GameLogger.Instance.RecordEmotionalResponse("Victory", "Positive", gameTime);
+        GameLogger.Instance.RecordEngagementMetrics("SessionComplete", gameTime, "Won");
+        
+        // Track winning conditions and resources
+        int villages = BuildingSystem.Instance != null ? BuildingSystem.Instance.GetBuildingCount("Village") : 0;
+        int gold = ResourceManager.Instance != null ? ResourceManager.Instance.GetResource("gold") : 0;
+        int wood = ResourceManager.Instance != null ? ResourceManager.Instance.GetResource("wood") : 0;
+        
+        GameLogger.Instance.RecordStrategicChoice("VictoryCondition", $"Villages:{villages}_Gold:{gold}_Wood:{wood}", gameTime);
 
         if (gameOverPanel != null)
         {
@@ -129,6 +138,15 @@ public class GameManager : MonoBehaviour
         
         Debug.Log($"GAME LOST! Time: {gameTime:F1} seconds");
         GameLogger.Instance.RecordEvent($"GAME LOST - {message}", 0, 0);
+        GameLogger.Instance.RecordEmotionalResponse("Defeat", "Negative", gameTime);
+        GameLogger.Instance.RecordEngagementMetrics("SessionComplete", gameTime, "Lost");
+        
+        // Track losing conditions and final resources
+        int villages = BuildingSystem.Instance != null ? BuildingSystem.Instance.GetBuildingCount("Village") : 0;
+        int gold = ResourceManager.Instance != null ? ResourceManager.Instance.GetResource("gold") : 0;
+        int wood = ResourceManager.Instance != null ? ResourceManager.Instance.GetResource("wood") : 0;
+        
+        GameLogger.Instance.RecordStrategicChoice("DefeatCondition", $"Villages:{villages}_Gold:{gold}_Wood:{wood}", gameTime);
 
         if (gameOverPanel != null)
         {

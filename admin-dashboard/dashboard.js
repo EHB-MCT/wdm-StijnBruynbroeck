@@ -67,7 +67,8 @@ class BehavioralDashboard {
             users.forEach(user => {
                 const option = document.createElement('option');
                 option.value = user.uid;
-                option.textContent = `${user.uid} (Joined: ${new Date(user.created_at).toLocaleDateString()})`;
+                const lastActive = user.last_active ? new Date(user.last_active).toLocaleDateString() : 'Never';
+                option.textContent = `${user.uid} (Sessions: ${user.total_sessions || 1}, Last: ${lastActive})`;
                 userSelect.appendChild(option);
             });
         } catch (error) {

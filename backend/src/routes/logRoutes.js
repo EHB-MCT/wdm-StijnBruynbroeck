@@ -21,4 +21,9 @@ router.get("/influence-strategy/:uid", LogController.getInfluenceStrategy);
 router.get("/insights/:uid", LogController.getUserInsights);
 router.get("/influence-analytics/:uid", LogController.getInfluenceAnalytics);
 
+// A/B testing endpoints
+router.get("/abtest/:testName/assign/:uid", LogController.getABTestAssignment);
+router.get("/analytics/:uid", LogController.getUserAnalytics);
+router.post("/profile/:uid", LogController.updateUserProfile);
+
 module.exports = router;

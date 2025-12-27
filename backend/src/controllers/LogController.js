@@ -199,6 +199,43 @@ class LogController {
 			res.status(500).json({ error: "Analytics generation failed" });
 		}
 	}
+
+	async getABTestAssignment(req, res) {
+		const { uid, testName } = req.params;
+		
+		try {
+			const assignment = await BehavioralAnalysisService.getABTestAssignment(uid, testName);
+			res.json(assignment);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "A/B test assignment failed" });
+		}
+	}
+
+	async getUserAnalytics(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const analytics = await BehavioralAnalysisService.getUserAnalytics(uid);
+			res.json(analytics);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Analytics fetch failed" });
+		}
+	}
+
+	async updateUserProfile(req, res) {
+		const { uid } = req.params;
+		const profileData = req.body;
+		
+		try {
+			await BehavioralAnalysisService.createOrUpdateUserProfile(uid, profileData);
+			res.json({ status: "success" });
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Profile update failed" });
+		}
+	}
 }
 
 module.exports = new LogController();

@@ -58,6 +58,11 @@ public class GameLogger : MonoBehaviour
         RecordSessionStart();
     }
 
+    public string GetPlayerUID()
+    {
+        return PlayerIdentifier;
+    }
+
     private void SendDataToAPI(GameActionData data)
     {
         // Defensive check for UID
@@ -310,10 +315,25 @@ public class GameLogger : MonoBehaviour
         return "EmptySpace";
     }
 
+    private Vector3 lastMousePosition;
+    private float hoverStartTime;
+    private string lastHoverTarget;
+
     private float CalculateHoverDuration()
     {
-        // Simple hover duration calculation
-        // In a real implementation, you'd track position over time
-        return Random.Range(0.1f, 2.0f); // Placeholder for actual hover calculation
+        Vector3 currentMousePos = Input.mousePosition;
+        string currentHoverTarget = GetCurrentHoverTarget();
+        
+        if (currentMousePos == lastMousePosition && currentHoverTarget == lastHoverTarget)
+        {
+            return Time.time - hoverStartTime;
+        }
+        else
+        {
+            lastMousePosition = currentMousePos;
+            lastHoverTarget = currentHoverTarget;
+            hoverStartTime = Time.time;
+            return 0f;
+        }
     }
 }

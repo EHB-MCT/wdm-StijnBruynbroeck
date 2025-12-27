@@ -214,8 +214,8 @@ class LogService {
 
 	async getUserActionsByType(uid, actionType, limit = 100) {
 		const result = await pool.query(
-			`SELECT * FROM game_actions WHERE $1, user_uid = $1 AND action_type = $2 ORDER BY timestamp DESC LIMIT $3`,
-			[uid, actionType, limit]
+			`INSERT INTO game_actions (user_uid, action_type, action_data) VALUES ($1, $2, $3)`,
+			[uid, type, data]
 		);
 		return result.rows;
 	}

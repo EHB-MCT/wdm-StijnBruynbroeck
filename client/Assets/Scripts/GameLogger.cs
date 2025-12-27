@@ -59,7 +59,10 @@ public class GameLogger : MonoBehaviour
 
     private IEnumerator PostRequest(string url, string json)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.Post(url, json))
+        using (UnityWebRequest webRequest = UnityWebRequest.PostWwwForm(url, json))
+        {
+            webRequest.certificateHandler = new UnityWebRequestCertHandler();
+        }
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
             webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);

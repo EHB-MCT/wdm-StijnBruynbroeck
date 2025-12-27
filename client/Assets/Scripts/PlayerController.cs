@@ -197,7 +197,8 @@ public class PlayerController : MonoBehaviour
         
         Debug.Log($"Player moved to tile: ({gridX},{gridY})");
 
-        GameLogger.Instance.RecordMove(gridX, gridY);
+/.*RecordMove.*202d/200a/200b/200c/
+,202b/.*RecordMove.*202c/d/            GameLogger.Instance.RecordMove(gridX, gridY);/
         
         // Track resource changes
         if (goldBefore != goldAfter)

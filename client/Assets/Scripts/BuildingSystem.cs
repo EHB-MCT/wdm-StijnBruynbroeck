@@ -114,7 +114,8 @@ public class BuildingSystem : MonoBehaviour
         if (placedBuildings.ContainsKey(position))
         {
             float decisionTime = Time.time - decisionStartTime;
-            GameLogger.Instance.RecordStrategicChoice("BuildAttempt", "Village_Failed_Occupied", decisionTime);
+            if (GameLogger.Instance != null)
+                GameLogger.Instance.RecordStrategicChoice("BuildAttempt", "Village_Failed_Occupied", decisionTime);
             Debug.Log("There's already a building at this position!");
             return false;
         }

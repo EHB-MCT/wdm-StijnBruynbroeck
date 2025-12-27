@@ -6,9 +6,26 @@ const LogService = require("./services/LogService");
 const app = express();
 const port = process.env.PORT || 8080;
 
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', '*'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Debug middleware to log ALL requests
+app.use((req, res, next) => {
+    if (req.method === 'POST' && req.path === '/api/log') {
+        console.log('=== INCOMING POST REQUEST ===');
+        console.log('Method:', req.method);
+        console.log('Path:', req.path);
+        console.log('Content-Type:', req.get('Content-Type'));
+        console.log('Raw body (before parsing):', req.body);
+    }
+    next();
+});
+
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", require("./routes/logRoutes"));
 

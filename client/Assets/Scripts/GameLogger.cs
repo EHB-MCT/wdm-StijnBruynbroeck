@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Text;
 using System.Collections;
-using UnityEngine.Networking;
 
+[DefaultExecutionOrder(-1000)] // Ensures GameLogger initializes before other scripts
 public class GameLogger : MonoBehaviour
 {
     public static GameLogger Instance;
@@ -13,9 +13,31 @@ public class GameLogger : MonoBehaviour
     private List<GameActionData> logs = new List<GameActionData>();
     private string PlayerIdentifier;
 
-    void Start()
+    [System.Serializable]
+    public class ApiRequestData
     {
-        // Try to load existing UID from PlayerPrefs
+        public string uid;
+        public string type;
+        public ActionData action_data;
+    }
+
+    [System.Serializable]
+    public class ActionData
+    {
+        public float timeInGame;
+        public int hexX;
+        public int hexY;
+        public string details;
+    }
+
+    void Awake()
+    {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+            
+        // Initialize UID here (moved from Start to ensure availability before other scripts)
         if (PlayerPrefs.HasKey("PlayerUID"))
         {
             PlayerIdentifier = PlayerPrefs.GetString("PlayerUID");
@@ -28,25 +50,33 @@ public class GameLogger : MonoBehaviour
             PlayerPrefs.Save();
             Debug.Log($"Created new Player UID: {PlayerIdentifier}");
         }
-        
-        // Record session start
-        RecordSessionStart();
     }
 
-    void Awake()
+    void Start()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        // Only record session start, UID already initialized in Awake
+        RecordSessionStart();
     }
 
     private void SendDataToAPI(GameActionData data)
     {
-        var requestData = new {
+        // Defensive check for UID
+        if (string.IsNullOrEmpty(PlayerIdentifier))
+        {
+            Debug.LogError("PlayerIdentifier is null or empty - cannot send data");
+            Debug.LogError("This indicates GameLogger.Awake() hasn't run yet or failed");
+            
+            // Emergency UID generation as fallback
+            PlayerIdentifier = "Player_" + System.Guid.NewGuid().ToString().Substring(0, 8);
+            PlayerPrefs.SetString("PlayerUID", PlayerIdentifier);
+            PlayerPrefs.Save();
+            Debug.LogWarning($"Generated emergency UID: {PlayerIdentifier}");
+        }
+        
+        var requestData = new ApiRequestData {
             uid = PlayerIdentifier,
             type = data.ActionType,
-            action_data = new {
+            action_data = new ActionData {
                 timeInGame = data.TimeInGame,
                 hexX = data.HexX,
                 hexY = data.HexY,
@@ -55,15 +85,13 @@ public class GameLogger : MonoBehaviour
         };
         
         string json = JsonUtility.ToJson(requestData);
+        Debug.Log($"Sending JSON: {json}");
         StartCoroutine(PostRequest(API_URL, json));
     }
 
     private IEnumerator PostRequest(string url, string json)
     {
-        var webRequest = UnityWebRequest.PostWwwForm(url, json);
-        webRequest.useHttpContinue = false;
-        webRequest.chunkedTransfer = false;
-        
+        var webRequest = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
         webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
         webRequest.downloadHandler = new DownloadHandlerBuffer();
@@ -74,6 +102,8 @@ public class GameLogger : MonoBehaviour
         if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
         {
             Debug.LogError($"API Error: {webRequest.error}");
+            Debug.LogError($"Response Code: {webRequest.responseCode}");
+            Debug.LogError($"Response: {webRequest.downloadHandler.text}");
         }
         else
         {

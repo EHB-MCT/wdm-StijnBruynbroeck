@@ -4,27 +4,49 @@ const InfluenceService = require("../services/InfluenceService");
 
 class LogController {
 	async logAction(req, res) {
-		let body = '';
-		
-		req.on('data', chunk => {
-			body += chunk.toString();
-		});
-		
-	req.on('end', async () => {
 		try {
-			console.log("Raw body length:", body.length);
-			console.log("Raw body:", body);
-			console.log("First 10 chars:", body.substring(0, 10));
+			// Log the raw request body for debugging
+			console.log('=== NEW REQUEST ===');
+			console.log('Raw request body:', JSON.stringify(req.body, null, 2));
+			console.log('Request headers:', JSON.stringify(req.headers, null, 2));
 			
-			if (!body || body.trim() === '') {
-				throw new Error("Empty body");
+			// Check if body is empty or malformed
+			if (!req.body || Object.keys(req.body).length === 0) {
+				throw new Error("Empty request body");
 			}
 			
-		const { uid, type, data } = JSON.parse(body);
-		console.log('Parsed JSON:', { uid, type, data });
+			// Try to extract data with fallback for different possible structures
+			let uid, type, action_data;
+			
+			if (req.body.uid && req.body.type && req.body.action_data) {
+				// Standard structure
+				uid = req.body.uid;
+				type = req.body.type;
+				action_data = req.body.action_data;
+			} else if (req.body.uid && req.body.type && req.body.data) {
+				// Alternative structure (Unity might send 'data' instead of 'action_data')
+				uid = req.body.uid;
+				type = req.body.type;
+				action_data = req.body.data;
+			} else {
+				// Log what we actually received
+				console.error('Request body structure unexpected. Keys:', Object.keys(req.body));
+				console.error('Full body:', req.body);
+				throw new Error("Missing required fields. Expected: uid, type, and action_data or data");
+			}
+			
+			console.log('Extracted data:', { uid, type, action_data });
+			
+			// Validate required fields
+			if (!uid || !type || !action_data) {
+				throw new Error("Missing required fields: uid, type, or action_data");
+			}
 		
-		// Log the action
-		const result = await LogService.logGameAction(uid, type, data);
+		// Ensure user exists before logging action
+		await LogService.ensureUserExists(uid);
+		
+		// Log action
+		const result = await LogService.logGameAction(uid, type, action_data);
 			console.log(` Data opgeslagen voor user: ${uid}`);
 			
 			// Trigger behavioral analysis for significant events
@@ -37,10 +59,11 @@ class LogController {
 			
 			res.json(result);
 		} catch (err) {
+			console.error("=== ERROR ===");
 			console.error("Error:", err);
+			console.error("Stack:", err.stack);
 			res.status(500).json({ error: "Save failed", details: err.message });
 		}
-	});
 	}
 
 	async getActions(req, res) {

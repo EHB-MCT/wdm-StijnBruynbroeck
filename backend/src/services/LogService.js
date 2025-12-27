@@ -4,7 +4,7 @@ class LogService {
 	async initializeTables() {
 		await pool.query(`
                 CREATE TABLE IF NOT EXISTS users (
-                    user_uid VARCHAR(255) PRIMARY KEY,
+                    uid VARCHAR(255) PRIMARY KEY,
                     platform VARCHAR(50),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_session TIMESTAMP,
@@ -27,15 +27,14 @@ class LogService {
                 CREATE TABLE IF NOT EXISTS user_profiles (
                     user_uid VARCHAR(255) PRIMARY KEY,
                     risk_tolerance FLOAT DEFAULT 0.5,
-                    decission_speed FLOAT DEFAULT 0.5,
+                    decision_speed FLOAT DEFAULT 0.5,
                     resource_efficiency FLOAT DEFAULT 0.5,
                     strategic_score FLOAT DEFAULT 0.5,
                     engagement_level FLOAT DEFAULT 0.5,
                     emotional_responsiveness FLOAT DEFAULT 0.5,
                     influence_susceptibility FLOAT DEFAULT 0.5,
                     skill_progression FLOAT DEFAULT 0.5,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
@@ -47,8 +46,7 @@ class LogService {
                     influence_strength FLOAT,
                     player_response VARCHAR(50),
                     effectiveness_score FLOAT,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
@@ -60,8 +58,7 @@ class LogService {
                     metric_value FLOAT,
                     context_data JSONB,
                     session_id VARCHAR(50),
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
             `);
 
@@ -75,10 +72,28 @@ class LogService {
                     actions_count INTEGER DEFAULT 0,
                     decisions_made INTEGER DEFAULT 0,
                     resources_gained INTEGER DEFAULT 0,
-                    resources_spent INTEGER DEFAULT 0,
-                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
+                    resources_spent INTEGER DEFAULT 0
                 );
             `);
+	}
+
+	async ensureUserExists(uid) {
+		try {
+			// Check if user exists
+			const existingUser = await pool.query('SELECT uid FROM users WHERE uid = $1', [uid]);
+			
+			if (existingUser.rows.length === 0) {
+				// Create user if doesn't exist
+				await pool.query(
+					'INSERT INTO users (uid, platform, total_sessions, total_playtime) VALUES ($1, $2, 1, 0)',
+					[uid, 'Unity']
+				);
+				console.log(`Created new user: ${uid}`);
+			}
+		} catch (error) {
+			console.error('Error ensuring user exists:', error);
+			throw error;
+		}
 	}
 
 	async logGameAction(uid, type, data) {
@@ -94,18 +109,10 @@ class LogService {
 			throw error;
 		}
 	}
-		
-		await pool.query(
-			`INSERT INTO $1, user_uid, action_type, action_data) VALUES ($1, $2, $3)`,
-			[uid, type, data]
-		);
-		
-		return { status: "success" };
-	}
 
 	async getGameActions(uid) {
 		const result = await pool.query(
-			`SELECT * FROM game_actions WHERE $1, user_uid = $1 ORDER BY timestamp DESC`,
+			`SELECT * FROM game_actions WHERE user_uid = $1 ORDER BY timestamp DESC`,
 			[uid]
 		);
 		return result.rows;
@@ -113,9 +120,9 @@ class LogService {
 
 	async updateUserProfile(uid, profileData) {
 		await pool.query(`
-			INSERT INTO $1, user_uid, risk_tolerance, decision_speed, resource_efficiency, strategic_score, engagement_level, emotional_responsiveness, influence_susceptibility, skill_progression)
+			INSERT INTO user_profiles (user_uid, risk_tolerance, decision_speed, resource_efficiency, strategic_score, engagement_level, emotional_responsiveness, influence_susceptibility, skill_progression)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-			ON CONFLICT (uid) DO UPDATE SET
+			ON CONFLICT (user_uid) DO UPDATE SET
 				risk_tolerance = EXCLUDED.risk_tolerance,
 				decision_speed = EXCLUDED.decision_speed,
 				resource_efficiency = EXCLUDED.resource_efficiency,
@@ -132,7 +139,7 @@ class LogService {
 
 	async getUserProfile(uid) {
 		const result = await pool.query(
-			`SELECT * FROM user_profiles WHERE $1, user_uid = $1`,
+			`SELECT * FROM user_profiles WHERE user_uid = $1`,
 			[uid]
 		);
 		return result.rows[0] || null;
@@ -142,7 +149,7 @@ class LogService {
 		// Get recent actions for pattern analysis
 		const actionsResult = await pool.query(
 			`SELECT action_type, action_data, timestamp FROM game_actions 
-			 WHERE $1, user_uid = $1 AND timestamp > NOW() - INTERVAL '24 hours'
+			 WHERE user_uid = $1 AND timestamp > NOW() - INTERVAL '24 hours'
 			 ORDER BY timestamp DESC`,
 			[uid]
 		);
@@ -230,7 +237,7 @@ class LogService {
 
 	async getUserSessions(uid) {
 		const result = await pool.query(
-			`SELECT * FROM sessions WHERE $1, user_uid = $1 ORDER BY start_time DESC`,
+			`SELECT * FROM sessions WHERE user_uid = $1 ORDER BY start_time DESC`,
 			[uid]
 		);
 		return result.rows;
@@ -238,7 +245,7 @@ class LogService {
 
 	async recordInfluenceEvent(uid, influenceType, influenceStrength, playerResponse, effectivenessScore) {
 		await pool.query(
-			`INSERT INTO $1, user_uid, influence_type, influence_strength, player_response, effectiveness_score)
+			`INSERT INTO influence_events (user_uid, influence_type, influence_strength, player_response, effectiveness_score)
 			 VALUES ($1, $2, $3, $4, $5)`,
 			[uid, influenceType, influenceStrength, playerResponse, effectivenessScore]
 		);

@@ -25,9 +25,9 @@ class LogService {
 
 		await pool.query(`
                 CREATE TABLE IF NOT EXISTS user_profiles (
-                    uid VARCHAR(255) PRIMARY KEY,
+                    user_uid VARCHAR(255) PRIMARY KEY,
                     risk_tolerance FLOAT DEFAULT 0.5,
-                    decision_speed FLOAT DEFAULT 0.5,
+                    decission_speed FLOAT DEFAULT 0.5,
                     resource_efficiency FLOAT DEFAULT 0.5,
                     strategic_score FLOAT DEFAULT 0.5,
                     engagement_level FLOAT DEFAULT 0.5,
@@ -35,7 +35,7 @@ class LogService {
                     influence_susceptibility FLOAT DEFAULT 0.5,
                     skill_progression FLOAT DEFAULT 0.5,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 

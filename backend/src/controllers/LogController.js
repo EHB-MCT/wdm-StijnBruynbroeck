@@ -20,10 +20,11 @@ class LogController {
 				throw new Error("Empty body");
 			}
 			
-			const { uid, type, data } = JSON.parse(body);
-			
-			// Log the action
-			const result = await LogService.logGameAction(uid, type, data);
+		const { uid, type, data } = JSON.parse(body);
+		console.log('Parsed JSON:', { uid, type, data });
+		
+		// Log the action
+		const result = await LogService.logGameAction(uid, type, data);
 			console.log(` Data opgeslagen voor user: ${uid}`);
 			
 			// Trigger behavioral analysis for significant events

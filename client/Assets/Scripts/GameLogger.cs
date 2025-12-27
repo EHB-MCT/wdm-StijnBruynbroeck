@@ -59,26 +59,23 @@ public class GameLogger : MonoBehaviour
 
     private IEnumerator PostRequest(string url, string json)
     {
-        using (UnityWebRequest webRequest = UnityWebRequest.PostWwwForm(url, json))
+        var webRequest = UnityWebRequest.PostWwwForm(url, json);
+        webRequest.certificateHandler = new UnityWebRequestCertHandler();
+        
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+        webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        webRequest.downloadHandler = new DownloadHandlerBuffer();
+        webRequest.SetRequestHeader("Content-Type", "application/json");
+        
+        yield return webRequest.SendWebRequest();
+        
+        if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
         {
-            webRequest.certificateHandler = new UnityWebRequestCertHandler();
+            Debug.LogError($"API Error: {webRequest.error}");
         }
+        else
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            webRequest.downloadHandler = new DownloadHandlerBuffer();
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-            
-            yield return webRequest.SendWebRequest();
-            
-            if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
-            {
-                Debug.LogError($"API Error: {webRequest.error}");
-            }
-            else
-            {
-                Debug.Log("Action successful");
-            }
+            Debug.Log("Action successful");
         }
     }
 

@@ -22,5 +22,16 @@ services:
     depends_on:
       - database
 
+  admin-dashboard:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./admin-dashboard:/usr/share/nginx/html
+    depends_on:
+      - backend
+    profiles:
+      - full
+
 volumes:
   db-data:

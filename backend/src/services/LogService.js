@@ -35,7 +35,7 @@ class LogService {
                     influence_susceptibility FLOAT DEFAULT 0.5,
                     skill_progression FLOAT DEFAULT 0.5,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_uid) REFERENCES users(uid) ON DELETE CASCADE
+                    FOREIGN KEY (uid) REFERENCES users(uid) ON DELETE CASCADE
                 );
             `);
 

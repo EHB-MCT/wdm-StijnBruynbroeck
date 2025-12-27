@@ -209,7 +209,7 @@ class LogService {
 				   p.risk_tolerance, p.decision_speed, p.resource_efficiency, p.strategic_score,
 				   p.engagement_level, p.emotional_responsiveness, p.influence_susceptibility, p.skill_progression
 			FROM users u
-			LEFT JOIN user_profiles p ON u.uid = p.uid
+			LEFT JOIN user_profiles p ON u.uid = p.user_uid
 			ORDER BY u.created_at DESC
 		`);
 		return result.rows;

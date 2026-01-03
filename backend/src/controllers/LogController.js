@@ -1,0 +1,241 @@
+const LogService = require("../services/LogService");
+const BehavioralAnalysisService = require("../services/BehavioralAnalysisService");
+const InfluenceService = require("../services/InfluenceService");
+
+class LogController {
+	async logAction(req, res) {
+		try {
+			// Log the raw request body for debugging
+			console.log('=== NEW REQUEST ===');
+			console.log('Raw request body:', JSON.stringify(req.body, null, 2));
+			console.log('Request headers:', JSON.stringify(req.headers, null, 2));
+			
+			// Check if body is empty or malformed
+			if (!req.body || Object.keys(req.body).length === 0) {
+				throw new Error("Empty request body");
+			}
+			
+			// Try to extract data with fallback for different possible structures
+			let uid, type, action_data;
+			
+			if (req.body.uid && req.body.type && req.body.action_data) {
+				// Standard structure
+				uid = req.body.uid;
+				type = req.body.type;
+				action_data = req.body.action_data;
+			} else if (req.body.uid && req.body.type && req.body.data) {
+				// Alternative structure (Unity might send 'data' instead of 'action_data')
+				uid = req.body.uid;
+				type = req.body.type;
+				action_data = req.body.data;
+			} else {
+				// Log what we actually received
+				console.error('Request body structure unexpected. Keys:', Object.keys(req.body));
+				console.error('Full body:', req.body);
+				throw new Error("Missing required fields. Expected: uid, type, and action_data or data");
+			}
+			
+			console.log('Extracted data:', { uid, type, action_data });
+			
+			// Validate required fields
+			if (!uid || !type || !action_data) {
+				throw new Error("Missing required fields: uid, type, or action_data");
+			}
+		
+		// Ensure user exists before logging action
+		await LogService.ensureUserExists(uid);
+		
+		// Log action
+		const result = await LogService.logGameAction(uid, type, action_data);
+			console.log(` Data opgeslagen voor user: ${uid}`);
+			
+			// Trigger behavioral analysis for significant events
+			if (['DecisionTiming', 'StrategicChoice', 'ThreatResponse', 'QuestDecision'].includes(type)) {
+				// Analyze behavior in background (don't wait for response)
+				BehavioralAnalysisService.updateUserProfileRealtime(uid).catch(err => {
+					console.error('Behavioral analysis failed:', err);
+				});
+			}
+			
+			res.json(result);
+		} catch (err) {
+			console.error("=== ERROR ===");
+			console.error("Error:", err);
+			console.error("Stack:", err.stack);
+			res.status(500).json({ error: "Save failed", details: err.message });
+		}
+	}
+
+	async getActions(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const actions = await LogService.getGameActions(uid);
+			res.json(actions);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Fetch failed" });
+		}
+	}
+
+	async getUserProfile(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const profile = await LogService.getUserProfile(uid);
+			res.json(profile);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Profile fetch failed" });
+		}
+	}
+
+	async analyzeUserBehavior(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const analysis = await LogService.analyzeBehavioralPatterns(uid);
+			res.json(analysis);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Analysis failed" });
+		}
+	}
+
+	async getAllUsers(req, res) {
+		try {
+			const users = await LogService.getAllUsers();
+			res.json(users);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Users fetch failed" });
+		}
+	}
+
+	async getUserActionsByType(req, res) {
+		const { uid, actionType } = req.params;
+		const { limit = 100 } = req.query;
+		
+		try {
+			const actions = await LogService.getUserActionsByType(uid, actionType, parseInt(limit));
+			res.json(actions);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Actions fetch failed" });
+		}
+	}
+
+	async getUserSessions(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const sessions = await LogService.getUserSessions(uid);
+			res.json(sessions);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Sessions fetch failed" });
+		}
+	}
+
+	async recordInfluence(req, res) {
+		const { uid } = req.params;
+		const { influenceType, influenceStrength, playerResponse, effectivenessScore } = req.body;
+		
+		try {
+			await LogService.recordInfluenceEvent(uid, influenceType, influenceStrength, playerResponse, effectivenessScore);
+			res.json({ status: "success" });
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Influence recording failed" });
+		}
+	}
+
+	async applyInfluence(req, res) {
+		const { uid } = req.params;
+		const { influenceType, context } = req.body;
+		
+		try {
+			const result = await InfluenceService.applyInfluence(uid, influenceType, context);
+			res.json(result);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Influence application failed" });
+		}
+	}
+
+	async getInfluenceStrategy(req, res) {
+		const { uid } = req.params;
+		const { context } = req.query;
+		
+		try {
+			const strategy = await InfluenceService.generateInfluenceStrategy(uid, context);
+			res.json(strategy);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Strategy generation failed" });
+		}
+	}
+
+	async getUserInsights(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const insights = await BehavioralAnalysisService.generateUserInsights(uid);
+			res.json(insights);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Insights generation failed" });
+		}
+	}
+
+	async getInfluenceAnalytics(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const analytics = await InfluenceService.analyzeInfluenceEffectiveness(uid);
+			res.json(analytics);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Analytics generation failed" });
+		}
+	}
+
+	async getABTestAssignment(req, res) {
+		const { uid, testName } = req.params;
+		
+		try {
+			const assignment = await BehavioralAnalysisService.getABTestAssignment(uid, testName);
+			res.json(assignment);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "A/B test assignment failed" });
+		}
+	}
+
+	async getUserAnalytics(req, res) {
+		const { uid } = req.params;
+		
+		try {
+			const analytics = await BehavioralAnalysisService.getUserAnalytics(uid);
+			res.json(analytics);
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Analytics fetch failed" });
+		}
+	}
+
+	async updateUserProfile(req, res) {
+		const { uid } = req.params;
+		const profileData = req.body;
+		
+		try {
+			await BehavioralAnalysisService.createOrUpdateUserProfile(uid, profileData);
+			res.json({ status: "success" });
+		} catch (err) {
+			console.error(err);
+			res.status(500).json({ error: "Profile update failed" });
+		}
+	}
+}
+
+module.exports = new LogController();

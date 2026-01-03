@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavioral Profiling Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <header class="dashboard-header">
+        <h1>🎮 Behavioral Profiling Dashboard</h1>
+        <div class="header-controls">
+            <select id="userSelect" class="user-selector">
+                <option value="">Select User...</option>
+            </select>
+            <button id="refreshBtn" class="btn-primary">🔄 Refresh Data</button>
+            <button id="exportBtn" class="btn-secondary">📊 Export Data</button>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <!-- Overview Cards -->
+        <section class="overview-section">
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <span id="totalUsers" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Sessions</h3>
+                    <span id="activeSessions" class="stat-value">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg. Risk Tolerance</h3>
+                    <span id="avgRiskTolerance" class="stat-value">0.0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Engagement Rate</h3>
+                    <span id="engagementRate" class="stat-value">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Profile Section -->
+        <section class="profile-section">
+            <div class="section-header">
+                <h2>User Profile Analysis</h2>
+                <button id="analyzeUserBtn" class="btn-primary">🧠 Analyze User</button>
+            </div>
+            
+            <div class="profile-content">
+                <div class="profile-metrics">
+                    <div class="metric-card">
+                        <h4>Risk Tolerance</h4>
+                        <div class="progress-bar">
+                            <div id="riskToleranceBar" class="progress-fill"></div>
+                        </div>
+                        <span id="riskToleranceValue">0.0</span>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Decision Speed</h4>
+                        <div class="progress-bar">
+                            <div id="decisionSpeedBar" class="progress-fill"></div>
+                        </div>
+                        <span id="decisionSpeedValue">0.0</span>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Resource Efficiency</h4>
+                        <div class="progress-bar">
+                            <div id="resourceEfficiencyBar" class="progress-fill"></div>
+                        </div>
+                        <span id="resourceEfficiencyValue">0.0</span>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Strategic Score</h4>
+                        <div class="progress-bar">
+                            <div id="strategicScoreBar" class="progress-fill"></div>
+                        </div>
+                        <span id="strategicScoreValue">0.0</span>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Engagement Level</h4>
+                        <div class="progress-bar">
+                            <div id="engagementLevelBar" class="progress-fill"></div>
+                        </div>
+                        <span id="engagementLevelValue">0.0</span>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <h4>Emotional Response</h4>
+                        <div class="progress-bar">
+                            <div id="emotionalResponseBar" class="progress-fill"></div>
+                        </div>
+                        <span id="emotionalResponseValue">0.0</span>
+                    </div>
+                </div>
+
+                <!-- User Insights -->
+                <div class="insights-panel">
+                    <h3>AI-Generated Insights</h3>
+                    <div id="userInsights" class="insights-content">
+                        <p>Select a user to generate insights...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Behavioral Charts Section -->
+        <section class="charts-section">
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Behavioral Radar</h3>
+                    <canvas id="behavioralRadarChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Decision Timeline</h3>
+                    <canvas id="decisionTimelineChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Resource Management</h3>
+                    <canvas id="resourceManagementChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Engagement Patterns</h3>
+                    <canvas id="engagementChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Movement Heat Map</h3>
+                    <canvas id="movementHeatMap"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>User Profile Comparison</h3>
+                    <canvas id="userComparisonChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Influence Effectiveness</h3>
+                    <canvas id="influenceEffectivenessChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Influence Management Section -->
+        <section class="influence-section">
+            <div class="section-header">
+                <h2>Influence System Control</h2>
+                <button id="generateStrategyBtn" class="btn-primary">🎯 Generate Strategy</button>
+            </div>
+            
+            <div class="influence-content">
+                <div class="strategy-panel">
+                    <h3>Current Strategy</h3>
+                    <div id="currentStrategy" class="strategy-display">
+                        <p>No strategy generated yet...</p>
+                    </div>
+                </div>
+                
+                <div class="influence-analytics">
+                    <h3>Influence Analytics</h3>
+                    <div class="analytics-metrics">
+                        <div class="analytics-card">
+                            <h4>Acceptance Rate</h4>
+                            <span id="acceptanceRate">0%</span>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>Effectiveness Score</h4>
+                            <span id="effectivenessScore">0.0</span>
+                        </div>
+                        <div class="analytics-card">
+                            <h4>Susceptibility Trend</h4>
+                            <span id="susceptibilityTrend">Stable</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Actions Log -->
+        <section class="actions-section">
+            <div class="section-header">
+                <h2>Recent User Actions</h2>
+                <select id="actionTypeFilter" class="filter-select">
+                    <option value="">All Actions</option>
+                    <option value="Move">Movement</option>
+                    <option value="StrategicChoice">Strategic Choices</option>
+                    <option value="ResourceManagement">Resource Management</option>
+                    <option value="ThreatResponse">Threat Responses</option>
+                    <option value="EmotionalResponse">Emotional Responses</option>
+                </select>
+            </div>
+            
+            <div class="actions-log">
+                <table id="actionsTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action Type</th>
+                            <th>Details</th>
+                            <th>Position</th>
+                        </tr>
+                    </thead>
+                    <tbody id="actionsTableBody">
+                        <tr>
+                            <td colspan="4">No actions to display...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading data...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
